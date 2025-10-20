@@ -1,12 +1,12 @@
-# 🤖 AI Agent Desktop App
+# 🤖 AI Agent
 
-> **Chat with AI to manage files and code** - A modern desktop application powered by Electron, React, and AI
+> **Chat with AI to manage files and code** - Современное веб-приложение для работы с ИИ
 
 ![AI Agent](https://img.shields.io/badge/AI-Agent-blue?style=for-the-badge&logo=openai)
-![Electron](https://img.shields.io/badge/Electron-47848F?style=for-the-badge&logo=electron&logoColor=white)
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 
 ## ✨ Features
 
@@ -40,28 +40,24 @@
 3. **Files Only** - File browser mode
 4. **Editor Only** - Code editing mode
 
-## 🚀 Quick Start
+## 🚀 Быстрый запуск на Windows
 
-### Prerequisites
-- **Node.js** 16+ 
-- **npm** or **yarn**
-- **AI API Key** (OpenAI or Anthropic)
+### Первый запуск:
 
-### Installation
+1. **Скачайте проект** и распакуйте в любую папку
+2. **Дважды кликните на `setup.bat`** - это установит все необходимые зависимости
+3. **Дважды кликните на `start.bat`** - это запустит приложение
 
-```bash
-# Clone the repository
-git clone https://github.com/SMILEkot/agent.git
-cd agent
+Приложение откроется в браузере по адресу: `http://localhost:5173`
 
-# Install dependencies
-npm install
+### Ежедневное использование:
 
-# Start development server
-npm run dev
-```
+- **`start.bat`** - Запуск приложения одной кнопкой ✨
 
-The app will open in a new Electron window automatically!
+### Требования:
+- **Windows 7/10/11**
+- **Node.js** (будет предложено установить при первом запуске)
+- **Современный браузер** (Chrome, Firefox, Edge)
 
 ### 🔧 Configuration
 
@@ -84,15 +80,21 @@ The app will open in a new Electron window automatically!
 🤖 "Delete all .log files from the project"
 ```
 
-## 🛠 Development
+## 🛠️ Доступные скрипты
 
-### Available Scripts
+| Файл | Описание |
+|------|----------|
+| `setup.bat` | 🔧 Первоначальная настройка (запустить один раз) |
+| `start.bat` | 🚀 Запуск приложения в режиме разработки |
+| `build.bat` | 🔨 Сборка для продакшена |
+| `serve.bat` | 📦 Запуск собранной версии |
 
-- `npm run dev` - Start development (React + Electron)
-- `npm run dev:react` - Start only React dev server
-- `npm run build` - Build for production
-- `npm run dist` - Create distributable packages
-- `npm run lint` - Run ESLint
+### Команды npm:
+
+- `npm run dev` - Запуск в режиме разработки
+- `npm run build` - Сборка для продакшена
+- `npm run preview` - Запуск собранной версии
+- `npm run lint` - Проверка кода
 
 ### Project Structure
 
@@ -121,39 +123,38 @@ agent/
 └── dist/                   # Built files
 ```
 
-## 🎨 Tech Stack
+## 🎨 Технологии
 
 - **Frontend**: React 18 + TypeScript + TailwindCSS
-- **Desktop**: Electron 28
-- **State Management**: Zustand
-- **Code Editor**: Monaco Editor (VS Code engine)
-- **Syntax Highlighting**: Prism.js
-- **AI Integration**: OpenAI API + Anthropic API
-- **Build Tool**: Vite
-- **Animations**: Framer Motion
+- **Сборщик**: Vite
+- **Состояние**: Zustand
+- **Редактор**: Monaco Editor (движок VS Code)
+- **Подсветка**: React Syntax Highlighter
+- **AI**: OpenAI API + Anthropic API
+- **Анимации**: Framer Motion
 
-## 📦 Building for Production
+## 🐛 Решение проблем
 
-### Create distributable packages:
+### Приложение не запускается:
+1. Убедитесь, что установлен Node.js
+2. Запустите `setup.bat` от имени администратора
+3. Проверьте подключение к интернету
 
+### Ошибки при установке:
 ```bash
-# Build for current platform
-npm run dist
-
-# Build for specific platforms
-npm run dist:win    # Windows
-npm run dist:mac    # macOS
-npm run dist:linux  # Linux
+npm cache clean --force
+npm install
 ```
 
-Built packages will be in the `release/` directory.
+### Порт занят:
+Если порт 5173 занят, приложение автоматически выберет другой порт.
 
-## 🔒 Security
+## 📞 Поддержка
 
-- **Secure IPC** - All file operations go through secure Electron IPC
-- **API Key Protection** - Keys stored securely in Electron's safe storage
-- **Sandboxed Renderer** - React app runs in sandboxed environment
-- **No Node.js in Renderer** - Clean separation of concerns
+Если возникли проблемы:
+1. Проверьте, что все файлы `.bat` находятся в корневой папке проекта
+2. Убедитесь, что установлена последняя версия Node.js
+3. Попробуйте запустить от имени администратора
 
 ## 🤝 Contributing
 
@@ -177,7 +178,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ by [SMILEkot](https://github.com/SMILEkot)**
+**Приятного использования! 🎉**
 
-*Transform your development workflow with AI-powered file management!* 🚀
-
+*Создано с ❤️ для удобной работы с AI!* 🚀
