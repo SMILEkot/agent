@@ -2,18 +2,13 @@ import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  HomeIcon,
-  FolderIcon,
   CpuChipIcon,
   Cog6ToothIcon,
-  CommandLineIcon,
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Projects', href: '/projects', icon: FolderIcon },
-  { name: 'AI Agent', href: '/ai-agent', icon: CpuChipIcon },
+  { name: 'AI Agent', href: '/', icon: CpuChipIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]
 
@@ -57,30 +52,9 @@ const Sidebar: React.FC = () => {
         ))}
       </nav>
 
-      {/* Command Palette Trigger */}
-      <button
-        className="w-10 h-10 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-200 hover:bg-gray-800 transition-colors group"
-        onClick={() => {
-          // This will be handled by the global hotkey
-          const event = new KeyboardEvent('keydown', {
-            key: 'k',
-            ctrlKey: true,
-            bubbles: true
-          })
-          document.dispatchEvent(event)
-        }}
-      >
-        <CommandLineIcon className="w-5 h-5" />
-        
-        {/* Tooltip */}
-        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-gray-100 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-          Command Palette
-          <span className="ml-1 text-gray-500">⌘K</span>
-        </div>
-      </button>
+
     </motion.div>
   )
 }
 
 export default Sidebar
-

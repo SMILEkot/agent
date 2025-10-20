@@ -3,22 +3,18 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gray-950 text-gray-100;
   }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background;
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
   }
   
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 h-10 py-2 px-4;
+    @apply bg-blue-600 text-white hover:bg-blue-700 h-10 py-2 px-4;
   }
   
   .btn-secondary {
@@ -30,7 +26,7 @@
   }
   
   .input {
-    @apply flex h-10 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-10 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50;
   }
   
   .card {
@@ -42,7 +38,7 @@
   }
   
   .sidebar-item.active {
-    @apply text-primary-400 bg-primary-900/20;
+    @apply text-blue-400 bg-blue-900/20;
   }
 }
 
@@ -91,4 +87,3 @@
   white-space: nowrap;
   animation: typing 2s steps(40, end), blink-caret 0.75s step-end infinite;
 }
-

@@ -1,20 +1,11 @@
 {
-  "name": "ai-agent-desktop",
+  "name": "ai-agent",
   "version": "1.0.0",
-  "description": "AI Agent Desktop App - Chat with AI to manage files and code",
-  "main": "dist/main.js",
-  "homepage": "./",
+  "description": "AI Agent - Chat with AI to manage files and code",
+  "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run dev:react\" \"npm run dev:electron\"",
-    "dev:react": "vite",
-    "dev:electron": "wait-on http://localhost:5173 && electron .",
-    "build": "npm run build:react && npm run build:electron",
-    "build:react": "vite build",
-    "build:electron": "tsc -p tsconfig.electron.json",
-    "dist": "npm run build && electron-builder",
-    "dist:win": "npm run build && electron-builder --win",
-    "dist:mac": "npm run build && electron-builder --mac",
-    "dist:linux": "npm run build && electron-builder --linux",
+    "dev": "vite",
+    "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "type-check": "tsc --noEmit"
@@ -22,11 +13,9 @@
   "keywords": [
     "ai",
     "agent",
-    "electron",
     "react",
     "typescript",
     "tailwindcss",
-    "desktop",
     "file-manager",
     "code-editor",
     "openai",
@@ -39,7 +28,6 @@
     "url": "https://github.com/SMILEkot/agent.git"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@types/react-syntax-highlighter": "^15.5.11",
@@ -47,24 +35,18 @@
     "@typescript-eslint/parser": "^6.14.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
-    "concurrently": "^8.2.2",
-    "electron": "^28.0.0",
-    "electron-builder": "^24.9.1",
     "eslint": "^8.55.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.2.2",
-    "vite": "^5.0.8",
-    "wait-on": "^7.2.0"
+    "vite": "^5.0.8"
   },
   "dependencies": {
-    "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
     "@monaco-editor/react": "^4.6.0",
     "axios": "^1.6.2",
-    "chokidar": "^3.5.3",
     "clsx": "^2.0.0",
     "framer-motion": "^10.16.16",
     "markdown-to-jsx": "^7.4.0",
@@ -74,33 +56,5 @@
     "react-router-dom": "^6.20.1",
     "react-syntax-highlighter": "^15.5.0",
     "zustand": "^4.4.7"
-  },
-  "build": {
-    "appId": "com.smilekot.ai-agent",
-    "productName": "AI Agent",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist/**/*",
-      "node_modules/**/*"
-    ],
-    "win": {
-      "target": "nsis",
-      "icon": "assets/icon.ico"
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "assets/icon.icns"
-    },
-    "linux": {
-      "target": "AppImage",
-      "icon": "assets/icon.png"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    }
   }
 }
-
