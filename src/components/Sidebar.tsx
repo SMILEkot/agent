@@ -4,11 +4,17 @@ import { motion } from 'framer-motion'
 import {
   CpuChipIcon,
   Cog6ToothIcon,
+  FolderOpenIcon,
+  DocumentTextIcon,
+  ServerIcon,
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 
 const navigation = [
   { name: 'AI Agent', href: '/', icon: CpuChipIcon },
+  { name: 'Project', href: '/project', icon: FolderOpenIcon },
+  { name: 'Files', href: '/files', icon: DocumentTextIcon },
+  { name: 'SSH Terminal', href: '/server', icon: ServerIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]
 

@@ -31,7 +31,7 @@ if not exist "node_modules" (
 )
 
 :: Собираем проект
-echo 🔨 Собираем проект...
+echo 🔨 Собираем десктопное приложение...
 call npm run build
 if %errorlevel% neq 0 (
     echo ❌ Ошибка при сборке!
@@ -40,8 +40,9 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo ✅ Проект успешно собран!
-echo 📁 Файлы находятся в папке 'dist'
+echo ✅ Десктопное приложение успешно собрано!
+echo 📁 Установщики находятся в папке 'release'
+echo 🖥️  Готовые файлы в папке 'dist'
 echo.
 echo Для запуска собранной версии используйте: serve.bat
 echo.

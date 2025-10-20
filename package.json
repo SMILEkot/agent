@@ -1,14 +1,20 @@
 {
-  "name": "ai-agent",
+  "name": "ai-agent-desktop",
   "version": "1.0.0",
-  "description": "AI Agent - Chat with AI to manage files and code",
+  "description": "AI Agent Desktop App - Chat with AI to manage files and code with SSH support",
+  "main": "dist-electron/main.js",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
+    "dev:vite": "vite",
+    "dev:electron": "wait-on http://localhost:5173 && electron .",
+    "build": "tsc && vite build && npm run build:electron && electron-builder",
+    "build:electron": "tsc -p tsconfig.electron.json",
     "preview": "vite preview",
+    "dist": "npm run build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [
     "ai",
@@ -35,13 +41,17 @@
     "@typescript-eslint/parser": "^6.14.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
     "eslint": "^8.55.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.2.2",
-    "vite": "^5.0.8"
+    "vite": "^5.0.8",
+    "wait-on": "^7.2.0"
   },
   "dependencies": {
     "@heroicons/react": "^2.0.18",
@@ -50,11 +60,36 @@
     "clsx": "^2.0.0",
     "framer-motion": "^10.16.16",
     "markdown-to-jsx": "^7.4.0",
+    "node-ssh": "^13.1.0",
     "openai": "^4.20.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
     "react-syntax-highlighter": "^15.5.0",
     "zustand": "^4.4.7"
+  },
+  "build": {
+    "appId": "com.smilekot.ai-agent",
+    "productName": "AI Agent Desktop",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    }
   }
 }

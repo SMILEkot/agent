@@ -1,23 +1,35 @@
-# 🤖 AI Agent
+# 🤖 AI Agent Desktop
 
-> **Chat with AI to manage files and code** - Современное веб-приложение для работы с ИИ
+> **Chat with AI to manage files and code** - Современное десктопное приложение для работы с ИИ и SSH
 
 ![AI Agent](https://img.shields.io/badge/AI-Agent-blue?style=for-the-badge&logo=openai)
+![Electron](https://img.shields.io/badge/Electron-191970?style=for-the-badge&logo=Electron&logoColor=white)
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![SSH](https://img.shields.io/badge/SSH-4D4D4D?style=for-the-badge&logo=gnubash&logoColor=white)
 
 ## ✨ Features
 
 ### 🤖 **AI Chat Interface**
-- **Natural Language Commands** - Talk to AI like you would to a human developer
-- **Multiple AI Providers** - Support for OpenAI (GPT-3.5, GPT-4) and Anthropic (Claude 3)
+- **Zero Configuration** - AI works out of the box without setup!
+- **Multiple AI Providers** - Support for OpenAI, Ollama (local), and basic assistant
+- **Auto-Detection** - Automatically finds available AI services
 - **Message History** - Full conversation history with Markdown support
-- **Real-time Responses** - Streaming responses with typing indicators
+- **Smart Fallbacks** - Falls back to basic assistant if AI services unavailable
 
-### 📁 **Smart File Manager**
+### 📁 **Desktop File Manager**
+- **Local Project Selection** - Choose any folder on your computer
+- **Native File Access** - Full access to your local file system
 - **Tree View** - Navigate your project structure intuitively
+- **Recent Projects** - Quick access to recently opened projects
+
+### 🔌 **SSH Terminal & Server Management**
+- **SSH Connection** - Connect to Ubuntu servers with password or key authentication
+- **Interactive Terminal** - Full terminal experience with command history
+- **One-Click Server Setup** - Install Node.js, Docker, Nginx with single commands
+- **System Information** - Get detailed server stats and monitoring
+- **Quick Commands** - Pre-configured commands for common server tasks
 - **File Operations** - Create, edit, delete, and rename files through AI commands
 - **File Type Recognition** - Color-coded files by type with appropriate icons
 - **Real-time Updates** - File system watching for instant updates
@@ -46,18 +58,18 @@
 
 1. **Скачайте проект** и распакуйте в любую папку
 2. **Дважды кликните на `setup.bat`** - это установит все необходимые зависимости
-3. **Дважды кликните на `start.bat`** - это запустит приложение
+3. **Дважды кликните на `start.bat`** - это запустит десктопное приложение
 
-Приложение откроется в браузере по адресу: `http://localhost:5173`
+Приложение откроется в отдельном окне (не в браузере!)
 
 ### Ежедневное использование:
 
-- **`start.bat`** - Запуск приложения одной кнопкой ✨
+- **`start.bat`** - Запуск десктопного приложения одной кнопкой ✨
 
 ### Требования:
 - **Windows 7/10/11**
 - **Node.js** (будет предложено установить при первом запуске)
-- **Современный браузер** (Chrome, Firefox, Edge)
+- **Electron** (устанавливается автоматически)
 
 ### 🔧 Configuration
 
@@ -71,6 +83,7 @@
 
 ## 💬 Example Commands
 
+### AI Chat:
 ```
 🤖 "Create a new React component called UserProfile with TypeScript"
 🤖 "Add a new dependency 'axios' to package.json"
@@ -80,20 +93,31 @@
 🤖 "Delete all .log files from the project"
 ```
 
+### SSH Terminal:
+```
+🔌 Connect to your Ubuntu server with IP/password
+🔌 One-click install Node.js, Docker, Nginx
+🔌 Get system information and monitoring
+🔌 Run any Linux command interactively
+🔌 Set up development environment automatically
+```
+
 ## 🛠️ Доступные скрипты
 
 | Файл | Описание |
 |------|----------|
 | `setup.bat` | 🔧 Первоначальная настройка (запустить один раз) |
-| `start.bat` | 🚀 Запуск приложения в режиме разработки |
-| `build.bat` | 🔨 Сборка для продакшена |
-| `serve.bat` | 📦 Запуск собранной версии |
+| `start.bat` | 🚀 Запуск десктопного приложения |
+| `build.bat` | 📦 Сборка приложения для продакшена |
+| `serve.bat` | 🌐 Запуск собранной версии |
 
 ### Команды npm:
 
-- `npm run dev` - Запуск в режиме разработки
-- `npm run build` - Сборка для продакшена
+- `npm run dev` - Запуск Electron приложения в режиме разработки
+- `npm run build` - Сборка десктопного приложения для продакшена
 - `npm run preview` - Запуск собранной версии
+- `npm run electron:dev` - Запуск только Electron (без веб-сервера)
+- `npm run electron:build` - Сборка установщиков для Windows/Mac/Linux
 - `npm run lint` - Проверка кода
 
 ### Project Structure

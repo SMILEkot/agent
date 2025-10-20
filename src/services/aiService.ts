@@ -1,30 +1,98 @@
 import OpenAI from 'openai'
 import { AIConfig, AIResponse, FileOperation } from '../types/ai'
+import { AI_CONFIG, checkAIAvailability } from '../config/aiConfig'
 
 class AIService {
   private openai: OpenAI | null = null
-  private anthropicApiKey: string | null = null
+  private currentProvider: string = 'local'
+  private currentModel: string = 'basic-assistant'
+  private initialized = false
 
-  private initializeOpenAI(apiKey: string) {
-    this.openai = new OpenAI({
-      apiKey,
-      dangerouslyAllowBrowser: true, // Note: In production, use a proxy server
-    })
+  async initialize(): Promise<void> {
+    if (this.initialized) return;
+
+    // Автоматически определяем доступный AI сервис
+    const availability = await checkAIAvailability();
+    
+    this.currentProvider = availability.provider;
+    this.currentModel = availability.model;
+
+    if (availability.provider === 'openai' && AI_CONFIG.apiKey !== 'demo-key') {
+      this.openai = new OpenAI({
+        apiKey: AI_CONFIG.apiKey,
+        dangerouslyAllowBrowser: true
+      });
+    } else if (availability.provider === 'ollama') {
+      this.openai = new OpenAI({
+        baseURL: 'http://localhost:11434/v1',
+        apiKey: 'ollama',
+        dangerouslyAllowBrowser: true
+      });
+    }
+
+    this.initialized = true;
+    console.log(`AI сервис инициализирован: ${availability.provider} (${availability.model})`);
   }
 
-  async sendMessage(message: string, config: AIConfig): Promise<AIResponse> {
+  async sendMessage(message: string, config?: AIConfig): Promise<AIResponse> {
+    await this.initialize();
+
     try {
-      if (config.provider === 'openai') {
-        return await this.sendOpenAIMessage(message, config)
-      } else if (config.provider === 'anthropic') {
-        return await this.sendAnthropicMessage(message, config)
-      } else {
-        throw new Error('Unsupported AI provider')
+      // Используем автоматическую конфигурацию если не передана
+      const effectiveConfig = config || {
+        provider: this.currentProvider as any,
+        apiKey: AI_CONFIG.apiKey,
+        model: this.currentModel,
+        temperature: AI_CONFIG.temperature,
+        maxTokens: AI_CONFIG.maxTokens,
+      };
+
+      if (this.currentProvider === 'local' || !this.openai) {
+        return this.getBasicResponse(message);
       }
+
+      if (this.currentProvider === 'openai' || this.currentProvider === 'ollama') {
+        return await this.sendOpenAIMessage(message, effectiveConfig);
+      }
+
+      throw new Error('Неподдерживаемый AI провайдер');
     } catch (error) {
-      console.error('AI Service Error:', error)
-      throw new Error(`AI request failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error('AI Service Error:', error);
+      // Fallback к базовому ассистенту при ошибке
+      return this.getBasicResponse(message);
     }
+  }
+
+  private getBasicResponse(message: string): AIResponse {
+    const lowerMessage = message.toLowerCase();
+    let responseMessage = '';
+    const operations: FileOperation[] = [];
+    
+    if (lowerMessage.includes('создай') || lowerMessage.includes('create')) {
+      responseMessage = '📁 Для создания файлов используйте файловый менеджер или редактор кода. Я могу помочь с содержимым файла.';
+    } else if (lowerMessage.includes('файл') || lowerMessage.includes('file')) {
+      responseMessage = '📁 Для работы с файлами используйте файловый менеджер слева. Вы можете открывать, редактировать и создавать файлы.';
+    } else if (lowerMessage.includes('ssh') || lowerMessage.includes('сервер')) {
+      responseMessage = '🔌 Для подключения к серверу перейдите в раздел "SSH Terminal" и введите данные для подключения.';
+    } else if (lowerMessage.includes('ubuntu') || lowerMessage.includes('linux')) {
+      responseMessage = `🐧 Для настройки Ubuntu сервера:
+1. Подключитесь через SSH Terminal
+2. Используйте готовые команды для установки ПО
+3. Все команды выполняются автоматически!`;
+    } else {
+      responseMessage = `🤖 Я базовый AI ассистент. Помогаю с:
+• Управлением файлами и проектами
+• SSH подключением к серверам  
+• Настройкой Ubuntu серверов
+• Редактированием кода
+
+Для полной функциональности установите Ollama или настройте OpenAI API ключ.`;
+    }
+
+    return {
+      message: responseMessage,
+      operations
+    };
   }
 
   private async sendOpenAIMessage(message: string, config: AIConfig): Promise<AIResponse> {
@@ -32,32 +100,7 @@ class AIService {
       this.initializeOpenAI(config.apiKey)
     }
 
-    const systemPrompt = `You are an AI assistant that helps manage files and code. You can:
-1. Create new files with appropriate content
-2. Edit existing files
-3. Delete files
-4. Rename files
-5. Read and explain file contents
-
-When the user asks you to perform file operations, respond with:
-1. A helpful message explaining what you're doing
-2. The actual file operations in a structured format
-
-For file operations, use this JSON structure in your response:
-\`\`\`json
-{
-  "operations": [
-    {
-      "type": "create|edit|delete|rename|read",
-      "path": "file/path",
-      "content": "file content (for create/edit)",
-      "newPath": "new/path (for rename)"
-    }
-  ]
-}
-\`\`\`
-
-Always be helpful and explain what you're doing. If you're unsure about a file operation, ask for clarification.`
+    const systemPrompt = AI_CONFIG.systemPrompt
 
     const response = await this.openai!.chat.completions.create({
       model: config.model,
@@ -148,7 +191,34 @@ Always be helpful and explain what you're doing. If you're unsure about a file o
     }
     return []
   }
+
+  // Новые методы для статуса AI сервиса
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+
+  getProvider(): string {
+    return this.currentProvider;
+  }
+
+  getModel(): string {
+    return this.currentModel;
+  }
+
+  getStatus(): string {
+    if (!this.initialized) return 'Не инициализирован';
+    
+    switch (this.currentProvider) {
+      case 'openai':
+        return `OpenAI (${this.currentModel})`;
+      case 'ollama':
+        return `Ollama (${this.currentModel})`;
+      case 'local':
+        return 'Базовый ассистент';
+      default:
+        return 'Неизвестный провайдер';
+    }
+  }
 }
 
 export const aiService = new AIService()
-

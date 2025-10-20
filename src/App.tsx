@@ -1,20 +1,39 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Layout from './components/Layout'
 import AIAgent from './pages/AIAgent'
 import Settings from './pages/Settings'
+import FileManager from './pages/FileManager'
+import { ProjectSelector } from './pages/ProjectSelector'
+import { ServerManager } from './pages/ServerManager'
 import { useAppStore } from './store/appStore'
+import { aiService } from './services/aiService'
 
 function App() {
   const { setTheme } = useAppStore()
+  const [selectedProject, setSelectedProject] = useState<string>('')
   
   // Initialize app
   useEffect(() => {
     // Set dark theme by default
     setTheme('dark')
     document.documentElement.classList.add('dark')
+    
+    // Initialize AI service
+    aiService.initialize().catch(console.error)
+    
+    // Load last selected project
+    const lastProject = localStorage.getItem('lastSelectedProject')
+    if (lastProject) {
+      setSelectedProject(lastProject)
+    }
   }, [setTheme])
+
+  const handleProjectSelected = (projectPath: string) => {
+    setSelectedProject(projectPath)
+    localStorage.setItem('lastSelectedProject', projectPath)
+  }
   
   return (
     <motion.div 
@@ -26,6 +45,12 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<AIAgent />} />
+          <Route 
+            path="/project" 
+            element={<ProjectSelector onProjectSelected={handleProjectSelected} />} 
+          />
+          <Route path="/files" element={<FileManager />} />
+          <Route path="/server" element={<ServerManager />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </Layout>

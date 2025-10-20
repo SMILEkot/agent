@@ -40,10 +40,10 @@ if not exist "node_modules" (
 )
 
 :: Запускаем приложение
-echo 🚀 Запускаем AI Agent...
+echo 🚀 Запускаем AI Agent Desktop...
 echo.
-echo Приложение будет доступно по адресу: http://localhost:5173
-echo Для остановки нажмите Ctrl+C
+echo 🖥️  Приложение откроется в отдельном окне
+echo 💡 Для остановки закройте окно приложения или нажмите Ctrl+C
 echo.
 
 call npm run dev
