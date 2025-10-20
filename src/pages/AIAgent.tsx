@@ -4,7 +4,6 @@ import { useAIStore } from '../store/aiStore'
 import AIChat from '../components/AIChat'
 import FileManager from '../components/FileManager'
 import CodeEditor from '../components/CodeEditor'
-import ViewModeSelector from '../components/ViewModeSelector'
 
 const AIAgent: React.FC = () => {
   const { viewMode, loadFileTree, isConfigured } = useAIStore()
@@ -56,10 +55,9 @@ const AIAgent: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Header with View Mode Selector */}
+      {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-800">
         <h1 className="text-xl font-semibold text-gray-100">AI Agent</h1>
-        <ViewModeSelector />
       </div>
 
       {/* Main Content */}
@@ -111,4 +109,3 @@ const AIAgent: React.FC = () => {
 }
 
 export default AIAgent
-
