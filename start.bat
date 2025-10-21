@@ -18,49 +18,39 @@ echo ✅ Node.js найден
 echo.
 echo 🔍 Проверяем зависимости...
 
-REM Проверяем основные пакеты
-if not exist "node_modules\framer-motion" goto install_deps
-if not exist "node_modules\openai" goto install_deps
-if not exist "node_modules\@heroicons" goto install_deps
-if not exist "node_modules\@monaco-editor" goto install_deps
-if not exist "node_modules\markdown-to-jsx" goto install_deps
+REM Проверяем критические пакеты для сборки
+if not exist "node_modules\rollup" goto missing_deps
+if not exist "node_modules\vite" goto missing_deps
+if not exist "node_modules\framer-motion" goto missing_deps
+if not exist "node_modules\openai" goto missing_deps
+if not exist "node_modules\@heroicons" goto missing_deps
+if not exist "node_modules\@monaco-editor" goto missing_deps
+if not exist "node_modules\markdown-to-jsx" goto missing_deps
 
 echo ✅ Все зависимости найдены
 goto start_app
 
-:install_deps
-echo 📦 Устанавливаем зависимости...
-echo Это может занять несколько минут...
+:missing_deps
+echo 📦 Некоторые зависимости отсутствуют...
+echo 💡 Если у вас ошибка с Rollup - это известная проблема npm!
 echo.
+echo Устанавливаем зависимости...
 
-REM Очищаем кэш и старые зависимости
-echo 🧹 Очищаем кэш...
-if exist "node_modules" rmdir /s /q node_modules
-if exist "package-lock.json" del package-lock.json
-call npm cache clean --force
-
-echo.
-echo 📦 Устанавливаем пакеты...
-call npm install --no-optional --legacy-peer-deps --verbose
+REM Специальная установка для решения проблемы с Rollup
+call npm install --no-optional --legacy-peer-deps --force
 
 if %errorlevel% neq 0 (
     echo.
-    echo ❌ Ошибка установки через npm!
-    echo 💡 Пробуем через yarn...
-    
-    call npm install -g yarn
-    call yarn install
-    
-    if %errorlevel% neq 0 (
-        echo ❌ Ошибка установки зависимостей!
-        echo.
-        echo 💡 Попробуйте:
-        echo 1. Запустить как администратор
-        echo 2. Проверить подключение к интернету
-        echo 3. Удалить папку node_modules и запустить снова
-        pause
-        exit /b 1
-    )
+    echo ❌ Ошибка установки!
+    echo.
+    echo 🚨 Для ошибки "Cannot find module @rollup/rollup-win32-x64-msvc":
+    echo    Запустите: fix-deps.bat
+    echo.
+    echo 💡 Или попробуйте:
+    echo 1. Запустить как администратор
+    echo 2. Обновить Node.js
+    pause
+    exit /b 1
 )
 
 echo ✅ Зависимости установлены!
@@ -72,8 +62,21 @@ echo.
 echo 🖥️ Приложение откроется в отдельном окне
 echo 💡 Для остановки нажмите Ctrl+C
 echo.
+echo 🚨 Если увидите ошибку Rollup - нажмите Ctrl+C и запустите fix-deps.bat
+echo.
 
 npm run electron:dev
+
+if %errorlevel% neq 0 (
+    echo.
+    echo ❌ Ошибка запуска!
+    echo.
+    echo 💡 Если ошибка с Rollup - запустите:
+    echo    fix-deps.bat
+    echo.
+    echo 💡 Затем снова:
+    echo    start.bat
+)
 
 echo.
 echo 💡 Для перезапуска используйте start.bat
