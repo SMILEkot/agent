@@ -1,207 +1,120 @@
-# 🤖 AI Agent Desktop
+# 🚀 AI Agent Desktop
 
-> **Chat with AI to manage files and code** - Современное десктопное приложение для работы с ИИ и SSH
+Полнофункциональное десктопное приложение с AI агентом, терминалом и файловым менеджером.
 
-![AI Agent](https://img.shields.io/badge/AI-Agent-blue?style=for-the-badge&logo=openai)
-![Electron](https://img.shields.io/badge/Electron-191970?style=for-the-badge&logo=Electron&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![SSH](https://img.shields.io/badge/SSH-4D4D4D?style=for-the-badge&logo=gnubash&logoColor=white)
+## ✨ Возможности
 
-## ✨ Features
+### 🤖 AI Agent Chat
+- Интеграция с OpenAI, Ollama и другими провайдерами
+- Автоопределение доступных AI сервисов
+- Умный fallback на базовый ассистент
+- Markdown поддержка с подсветкой кода
 
-### 🤖 **AI Chat Interface**
-- **Zero Configuration** - AI works out of the box without setup!
-- **Multiple AI Providers** - Support for OpenAI, Ollama (local), and basic assistant
-- **Auto-Detection** - Automatically finds available AI services
-- **Message History** - Full conversation history with Markdown support
-- **Smart Fallbacks** - Falls back to basic assistant if AI services unavailable
+### 💻 Smart Terminal
+- **Agent Mode** (Ctrl+I) - команды естественным языком
+- Симуляция популярных команд: `ls`, `pwd`, `cd`, `ps`, `node -v`, `git status`, `ping`
+- Современный интерфейс с блоками команд и историей
+- Копирование и повтор команд одним кликом
+- Кроссплатформенная поддержка
 
-### 📁 **Desktop File Manager**
-- **Local Project Selection** - Choose any folder on your computer
-- **Native File Access** - Full access to your local file system
-- **Tree View** - Navigate your project structure intuitively
-- **Recent Projects** - Quick access to recently opened projects
+### 📁 File Manager
+- Просмотр файлов и папок
+- Навигация по проекту
+- Информация о размере файлов
 
-### 🔌 **SSH Terminal & Server Management**
-- **SSH Connection** - Connect to Ubuntu servers with password or key authentication
-- **Interactive Terminal** - Full terminal experience with command history
-- **One-Click Server Setup** - Install Node.js, Docker, Nginx with single commands
-- **System Information** - Get detailed server stats and monitoring
-- **Quick Commands** - Pre-configured commands for common server tasks
-- **File Operations** - Create, edit, delete, and rename files through AI commands
-- **File Type Recognition** - Color-coded files by type with appropriate icons
-- **Real-time Updates** - File system watching for instant updates
+### 🔧 SSH Server Manager
+- Управление SSH подключениями
+- Настройка серверов
 
-### 📝 **Integrated Code Editor**
-- **Syntax Highlighting** - Support for 20+ programming languages
-- **Edit Mode** - Direct file editing with save functionality
-- **File Information** - Line count, character count, and file stats
-- **Monaco Editor** - VS Code-like editing experience
+## 🚀 Быстрый старт
 
-### ⚡ **AI-Powered File Operations**
-- **"Create a React component called Button"** - AI creates the file with proper structure
-- **"Edit package.json to add lodash"** - AI modifies files intelligently
-- **"Show me the contents of App.tsx"** - AI displays and explains code
-- **"Delete old unused files"** - AI helps clean up your project
-
-### 🎯 **Multiple View Modes**
-1. **Split View** - Files, editor, and chat simultaneously
-2. **Chat Only** - Focus on AI conversation
-3. **Files Only** - File browser mode
-4. **Editor Only** - Code editing mode
-
-## 🚀 Быстрый запуск на Windows
-
-### Первый запуск:
-
-1. **Скачайте проект** и распакуйте в любую папку
-2. **Дважды кликните на `setup.bat`** - это установит все необходимые зависимости
-3. **Дважды кликните на `start.bat`** - это запустит десктопное приложение
-
-Приложение откроется в отдельном окне (не в браузере!)
-
-### Ежедневное использование:
-
-- **`start.bat`** - Запуск десктопного приложения одной кнопкой ✨
-
-### Требования:
-- **Windows 7/10/11**
-- **Node.js** (будет предложено установить при первом запуске)
-- **Electron** (устанавливается автоматически)
-
-### 🔧 Configuration
-
-1. **Open Settings** (⚙️ in sidebar)
-2. **Go to AI Configuration**
-3. **Choose your AI provider:**
-   - **OpenAI**: Get API key from [platform.openai.com](https://platform.openai.com/api-keys)
-   - **Anthropic**: Get API key from [console.anthropic.com](https://console.anthropic.com/)
-4. **Select model and configure parameters**
-5. **Start chatting with your AI agent!**
-
-## 💬 Example Commands
-
-### AI Chat:
-```
-🤖 "Create a new React component called UserProfile with TypeScript"
-🤖 "Add a new dependency 'axios' to package.json"
-🤖 "Show me all TypeScript files in the src folder"
-🤖 "Create a utils folder with a helper function for date formatting"
-🤖 "Edit the main App component to include routing"
-🤖 "Delete all .log files from the project"
-```
-
-### SSH Terminal:
-```
-🔌 Connect to your Ubuntu server with IP/password
-🔌 One-click install Node.js, Docker, Nginx
-🔌 Get system information and monitoring
-🔌 Run any Linux command interactively
-🔌 Set up development environment automatically
-```
-
-## 🛠️ Доступные скрипты
-
-| Файл | Описание |
-|------|----------|
-| `setup.bat` | 🔧 Первоначальная настройка (запустить один раз) |
-| `start.bat` | 🚀 Запуск десктопного приложения |
-| `build.bat` | 📦 Сборка приложения для продакшена |
-| `serve.bat` | 🌐 Запуск собранной версии |
-
-### Команды npm:
-
-- `npm run dev` - Запуск Electron приложения в режиме разработки
-- `npm run build` - Сборка десктопного приложения для продакшена
-- `npm run preview` - Запуск собранной версии
-- `npm run electron:dev` - Запуск только Electron (без веб-сервера)
-- `npm run electron:build` - Сборка установщиков для Windows/Mac/Linux
-- `npm run lint` - Проверка кода
-
-### Project Structure
-
-```
-agent/
-├── src/
-│   ├── components/          # React components
-│   │   ├── AIChat.tsx      # AI chat interface
-│   │   ├── FileManager.tsx # File tree browser
-│   │   ├── CodeEditor.tsx  # Code editor with syntax highlighting
-│   │   └── ...
-│   ├── pages/              # Application pages
-│   │   ├── AIAgent.tsx     # Main AI agent page
-│   │   ├── Settings.tsx    # Configuration page
-│   │   └── ...
-│   ├── services/           # Business logic
-│   │   ├── aiService.ts    # AI API integration
-│   │   ├── fileService.ts  # File system operations
-│   │   └── ...
-│   ├── store/              # State management (Zustand)
-│   ├── types/              # TypeScript definitions
-│   └── electron/           # Electron main process
-│       ├── main.ts         # Main Electron process
-│       └── preload.ts      # Preload script
-├── assets/                 # App icons and resources
-└── dist/                   # Built files
-```
-
-## 🎨 Технологии
-
-- **Frontend**: React 18 + TypeScript + TailwindCSS
-- **Сборщик**: Vite
-- **Состояние**: Zustand
-- **Редактор**: Monaco Editor (движок VS Code)
-- **Подсветка**: React Syntax Highlighter
-- **AI**: OpenAI API + Anthropic API
-- **Анимации**: Framer Motion
-
-## 🐛 Решение проблем
-
-### Приложение не запускается:
-1. Убедитесь, что установлен Node.js
-2. Запустите `setup.bat` от имени администратора
-3. Проверьте подключение к интернету
-
-### Ошибки при установке:
+### 1. Установка зависимостей
 ```bash
-npm cache clean --force
-npm install
+setup.bat
 ```
 
-### Порт занят:
-Если порт 5173 занят, приложение автоматически выберет другой порт.
+### 2. Запуск приложения
+```bash
+start.bat
+```
 
-## 📞 Поддержка
+## 🎮 Использование Terminal
 
-Если возникли проблемы:
-1. Проверьте, что все файлы `.bat` находятся в корневой папке проекта
-2. Убедитесь, что установлена последняя версия Node.js
-3. Попробуйте запустить от имени администратора
+### Обычные команды:
+```bash
+ls              # список файлов
+pwd             # текущая папка
+cd Documents    # перейти в папку
+ps aux          # процессы
+node -v         # версия Node.js
+git status      # статус git
+ping google.com # проверка сети
+help            # список команд
+clear           # очистить экран
+```
 
-## 🤝 Contributing
+### Agent Mode (Ctrl+I):
+```
+"покажи все файлы в папке"
+"проверь версию Node.js"
+"найди все процессы"
+"очисти экран"
+"перейди в папку Documents"
+```
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## 🔧 Технологии
 
-## 📄 License
+- **React** + **TypeScript** - основа приложения
+- **Electron** - десктопная оболочка
+- **Tailwind CSS** - стилизация
+- **Zustand** - управление состоянием
+- **Vite** - сборка и разработка
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 📦 Структура проекта
 
-## 🙏 Acknowledgments
+```
+src/
+├── components/
+│   ├── SimpleWebTerminal.tsx    # Терминал
+│   ├── Chat.tsx                 # AI чат
+│   ├── Layout.tsx               # Основной макет
+│   └── Sidebar.tsx              # Навигация
+├── pages/
+│   ├── AIAgent.tsx              # Главная страница
+│   ├── FileManager.tsx          # Файловый менеджер
+│   ├── Settings.tsx             # Настройки
+│   └── ...
+├── services/
+│   ├── aiService.ts             # AI провайдеры
+│   ├── terminalService.ts       # Терминал
+│   └── agentService.ts          # AI агент
+└── ...
+```
 
-- **OpenAI** for GPT models
-- **Anthropic** for Claude models
-- **Electron** team for the desktop framework
-- **React** team for the UI library
-- **Monaco Editor** for the code editing experience
+## 🛠️ Разработка
 
----
+### Запуск в режиме разработки:
+```bash
+npm run electron:dev
+```
 
-**Приятного использования! 🎉**
+### Сборка приложения:
+```bash
+npm run build
+```
 
-*Создано с ❤️ для удобной работы с AI!* 🚀
+### Создание дистрибутива:
+```bash
+npm run dist
+```
+
+## 📋 Системные требования
+
+- **Node.js** >= 16.0.0
+- **npm** >= 8.0.0
+- **Windows** 10+ / **macOS** 10.14+ / **Linux** (Ubuntu 18.04+)
+
+## 🎯 Готово к использованию!
+
+Запустите `setup.bat`, затем `start.bat` и наслаждайтесь полнофункциональным AI Agent Desktop! 🚀
+
