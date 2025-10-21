@@ -36,6 +36,16 @@ const server = http.createServer((req, res) => {
     return;
   }
   
+  if (pathname === '/api/ai-agents') {
+    handleAIAgents(req, res);
+    return;
+  }
+  
+  if (pathname === '/api/ai-chat') {
+    handleAIChat(req, res);
+    return;
+  }
+  
   // Static files
   let filePath = '.' + pathname;
   if (filePath === './') {
@@ -272,39 +282,323 @@ function handleTerminal(req, res) {
 }
 
 // Smart AI response generator
+// AI Provider Manager (simplified server version)
+class ServerAIManager {
+  constructor() {
+    this.credentials = {};
+    this.loadCredentials();
+  }
+
+  loadCredentials() {
+    // В реальном приложении загружаем из переменных окружения
+    this.credentials = {
+      openai: process.env.OPENAI_API_KEY,
+      google: process.env.GOOGLE_AI_API_KEY,
+      anthropic: process.env.ANTHROPIC_API_KEY,
+      cohere: process.env.COHERE_API_KEY,
+      huggingface: process.env.HUGGINGFACE_API_KEY
+    };
+  }
+
+  async callAI(request) {
+    // Пока что возвращаем умные локальные ответы
+    // В будущем здесь будет реальный вызов AI API
+    return this.generateSmartResponse(request);
+  }
+
+  generateSmartResponse(request) {
+    const message = request.message.toLowerCase();
+    const context = request.context || {};
+    
+    // Анализ типа задачи
+    let taskType = 'general';
+    if (message.includes('файл') || message.includes('папк') || message.includes('код')) {
+      taskType = 'code';
+    } else if (message.includes('дизайн') || message.includes('стиль') || message.includes('css')) {
+      taskType = 'design';
+    } else if (message.includes('ошибк') || message.includes('баг') || message.includes('не работает')) {
+      taskType = 'debug';
+    } else if (message.includes('анализ') || message.includes('проверь') || message.includes('посмотри')) {
+      taskType = 'analyze';
+    } else if (message.includes('тест')) {
+      taskType = 'test';
+    }
+
+    // Генерируем ответ с действиями
+    const responses = {
+      code: {
+        response: `Анализирую ваш запрос о коде: "${request.message}". 
+
+🤖 Автоматический план работы:
+1. 📁 Выбрать папку с проектом в файловом менеджере
+2. 🔍 Проанализировать структуру проекта
+3. ✏️ Найти нужные файлы и внести изменения
+4. ✅ Проверить код на ошибки
+5. 🚀 Протестировать результат
+
+Выберите папку проекта, и я начну автоматическую обработку!`,
+        actions: [
+          {
+            type: 'analyze_project',
+            target: context.projectPath || 'Выберите папку проекта',
+            description: 'Анализ структуры проекта и поиск файлов для редактирования'
+          }
+        ]
+      },
+      design: {
+        response: `Готов помочь с дизайном: "${request.message}".
+
+🎨 План автоматических действий:
+1. 🎨 Найти CSS файлы и компоненты
+2. 📐 Проанализировать текущий дизайн
+3. ✨ Применить новые стили
+4. 📱 Проверить адаптивность
+5. 🎯 Оптимизировать для разных устройств
+
+Укажите папку проекта для начала работы!`,
+        actions: [
+          {
+            type: 'find_design_files',
+            target: 'CSS, SCSS, styled-components',
+            description: 'Поиск файлов стилей для редактирования'
+          }
+        ]
+      },
+      debug: {
+        response: `Начинаю отладку: "${request.message}".
+
+🐛 Автоматический процесс отладки:
+1. 🔍 Анализ кода на ошибки
+2. 📋 Проверка логов и консоли
+3. 🛠️ Исправление найденных проблем
+4. ✅ Тестирование исправлений
+5. 📊 Отчет о проделанной работе
+
+Покажите проблемный код или выберите папку проекта!`,
+        actions: [
+          {
+            type: 'run_error_check',
+            target: 'ESLint, TypeScript, консоль браузера',
+            description: 'Автоматическая проверка на ошибки'
+          }
+        ]
+      },
+      analyze: {
+        response: `Провожу анализ: "${request.message}".
+
+📊 Этапы автоматического анализа:
+1. 📊 Сканирование структуры проекта
+2. 🔍 Анализ качества кода
+3. 📈 Оценка производительности
+4. 🔒 Проверка безопасности
+5. 💡 Рекомендации по улучшению
+
+Выберите папку для полного анализа проекта!`,
+        actions: [
+          {
+            type: 'full_project_scan',
+            target: context.projectPath || 'Весь проект',
+            description: 'Комплексный анализ проекта с рекомендациями'
+          }
+        ]
+      },
+      test: {
+        response: `Создаю тесты: "${request.message}".
+
+🧪 Автоматическое создание тестов:
+1. 📝 Анализ функций и компонентов
+2. 🧪 Генерация unit тестов
+3. 🔄 Создание интеграционных тестов
+4. ▶️ Запуск тестов
+5. 📊 Отчет о покрытии
+
+Укажите файлы или папку для создания тестов!`,
+        actions: [
+          {
+            type: 'generate_tests',
+            target: 'Функции и компоненты',
+            description: 'Автоматическая генерация тестов'
+          }
+        ]
+      },
+      general: {
+        response: `Понял ваш запрос: "${request.message}".
+
+🤖 AI Agent готов к автоматической работе:
+• 💻 Анализ и редактирование кода
+• 🎨 Работа с дизайном и стилями  
+• 🐛 Поиск и исправление ошибок
+• 🧪 Создание и запуск тестов
+• 🔍 Анализ проектов
+• 🚀 Автоматическое развертывание
+
+Просто выберите папку проекта и опишите, что нужно сделать!`,
+        actions: [
+          {
+            type: 'await_project_selection',
+            target: 'Файловый менеджер',
+            description: 'Ожидание выбора проекта для работы'
+          }
+        ]
+      }
+    };
+
+    const result = responses[taskType] || responses.general;
+    
+    return {
+      response: result.response,
+      actions: result.actions,
+      confidence: 0.9,
+      timestamp: new Date().toISOString(),
+      agentUsed: request.selectedAgent || 'local-smart',
+      taskType: taskType
+    };
+  }
+}
+
+const serverAI = new ServerAIManager();
+
+// Handle AI Agents API
+function handleAIAgents(req, res) {
+  setCORSHeaders(res);
+  
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
+  }
+  
+  if (req.method === 'GET') {
+    // Возвращаем список доступных AI агентов
+    const agents = [
+      {
+        id: 'openai-gpt35',
+        name: 'GPT-3.5 Turbo',
+        provider: 'OpenAI',
+        description: 'Быстрый и эффективный для кода и общих задач',
+        capabilities: [
+          { type: 'code', description: 'Написание и рефакторинг кода', strength: 4 },
+          { type: 'debugging', description: 'Поиск и исправление ошибок', strength: 4 },
+          { type: 'analysis', description: 'Анализ архитектуры проекта', strength: 3 },
+          { type: 'general', description: 'Общие вопросы разработки', strength: 4 }
+        ],
+        isEnabled: true,
+        isFree: true,
+        model: 'gpt-3.5-turbo',
+        maxTokens: 4096,
+        temperature: 0.7
+      },
+      {
+        id: 'google-gemini-flash',
+        name: 'Gemini 1.5 Flash',
+        provider: 'Google',
+        description: 'Быстрый и бесплатный для большинства задач',
+        capabilities: [
+          { type: 'code', description: 'Современные фреймворки и языки', strength: 4 },
+          { type: 'analysis', description: 'Анализ больших кодовых баз', strength: 4 },
+          { type: 'design', description: 'UI/UX рекомендации', strength: 3 },
+          { type: 'general', description: 'Универсальный помощник', strength: 4 }
+        ],
+        isEnabled: false,
+        isFree: true,
+        model: 'gemini-1.5-flash',
+        maxTokens: 8192,
+        temperature: 0.6
+      },
+      {
+        id: 'huggingface-codellama',
+        name: 'Code Llama',
+        provider: 'Hugging Face',
+        description: 'Специализируется на коде и программировании',
+        capabilities: [
+          { type: 'code', description: 'Генерация и завершение кода', strength: 5 },
+          { type: 'debugging', description: 'Исправление синтаксических ошибок', strength: 4 },
+          { type: 'analysis', description: 'Понимание структуры кода', strength: 4 },
+          { type: 'testing', description: 'Генерация тестов', strength: 3 }
+        ],
+        isEnabled: false,
+        isFree: true,
+        model: 'codellama/CodeLlama-7b-Instruct-hf',
+        maxTokens: 2048,
+        temperature: 0.3
+      }
+    ];
+    
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ agents }));
+    return;
+  }
+  
+  res.writeHead(405, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ error: 'Method not allowed' }));
+}
+
+// Handle AI Chat API
+function handleAIChat(req, res) {
+  setCORSHeaders(res);
+  
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
+  }
+  
+  if (req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body);
+        const { message, selectedAgent, context } = data;
+        
+        if (!message) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Message is required' }));
+          return;
+        }
+        
+        const request = {
+          message,
+          selectedAgent: selectedAgent || 'local-smart',
+          context: context || {}
+        };
+        
+        // Используем новый AI Manager
+        const aiResponse = await serverAI.callAI(request);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(aiResponse));
+        
+      } catch (error) {
+        console.error('AI Chat Error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+          error: 'Internal server error',
+          response: 'Извините, произошла ошибка при обработке запроса. Попробуйте еще раз.',
+          timestamp: new Date().toISOString(),
+          type: 'error'
+        }));
+      }
+    });
+    return;
+  }
+  
+  res.writeHead(405, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ error: 'Method not allowed' }));
+}
+
 function generateSmartResponse(message) {
-  const lowerMessage = message.toLowerCase();
+  const request = {
+    message: message,
+    selectedAgent: 'local-smart',
+    context: {}
+  };
   
-  // Контекстные ответы
-  if (lowerMessage.includes("файл") || lowerMessage.includes("папк")) {
-    return "Для работы с файлами используйте файловый менеджер. Я могу помочь проанализировать код, найти ошибки или объяснить структуру проекта.";
-  }
-  
-  if (lowerMessage.includes("код") || lowerMessage.includes("программ")) {
-    return "Я могу помочь с анализом кода! Покажите мне файл через файловый менеджер, и я объясню его структуру, найду потенциальные проблемы или предложу улучшения.";
-  }
-  
-  if (lowerMessage.includes("терминал") || lowerMessage.includes("команд")) {
-    return "Используйте вкладку Terminal для выполнения команд. Доступны безопасные команды: ls, pwd, whoami, date, uname, df, free, ps, cat, head, tail, wc, grep, find, tree.";
-  }
-  
-  if (lowerMessage.includes("помощь") || lowerMessage.includes("help")) {
-    return "Я AI Agent! Могу помочь с:\n• 📁 Анализом файлов и кода\n• 💻 Выполнением команд в терминале\n• 🔍 Поиском и объяснением информации\n• 🛠️ Решением технических задач\n\nЧто вас интересует?";
-  }
-  
-  if (lowerMessage.includes("привет") || lowerMessage.includes("hello")) {
-    return "Привет! Я AI Agent - ваш помощник для работы с файлами и кодом. Чем могу помочь?";
-  }
-  
-  // Общие ответы
-  const responses = [
-    `Интересный вопрос о "${message}". Я готов помочь с анализом файлов, выполнением команд или объяснением технических концепций.`,
-    `Понял ваш запрос: "${message}". Используйте файловый менеджер и терминал для практической работы, а я помогу с анализом.`,
-    `"${message}" - хорошая тема! Я могу помочь найти информацию, проанализировать код или выполнить команды. Что конкретно нужно?`,
-    `Спасибо за вопрос о "${message}". Как AI Agent, я специализируюсь на работе с файлами, кодом и системными задачах. Чем помочь?`
-  ];
-  
-  return responses[Math.floor(Math.random() * responses.length)];
+  const result = serverAI.generateSmartResponse(request);
+  return result.response;
 }
 
 const PORT = 3001;
