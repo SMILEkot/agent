@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Desktop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.3);
+            font-weight: 600;
+        }
+
+        .main-content {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .messages {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-y: auto;
+            min-height: 400px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background: rgba(103, 126, 234, 0.3);
+            margin-left: auto;
+            color: white;
+        }
+
+        .message.ai {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+
+        .message-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .send-btn {
+            padding: 1rem 2rem;
+            background: rgba(103, 126, 234, 0.8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .send-btn:hover {
+            background: rgba(103, 126, 234, 1);
+        }
+
+        .terminal {
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            border-radius: 8px;
+            min-height: 400px;
+            overflow-y: auto;
+        }
+
+        .terminal-input {
+            background: transparent;
+            border: none;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            width: 100%;
+            outline: none;
+        }
+
+        .page-title {
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .info-card h3 {
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-card p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status.online {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status.offline {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 AI Agent Desktop</h1>
+    </div>
+
+    <div class="container">
+        <nav class="sidebar">
+            <a href="#" class="nav-item active" data-page="ai-agent">🤖 AI Agent</a>
+            <a href="#" class="nav-item" data-page="terminal">💻 Terminal</a>
+            <a href="#" class="nav-item" data-page="files">📁 Files</a>
+            <a href="#" class="nav-item" data-page="ssh">🔧 SSH Server</a>
+            <a href="#" class="nav-item" data-page="settings">⚙️ Settings</a>
+        </nav>
+
+        <main class="main-content">
+            <!-- AI Agent Page -->
+            <div class="page active" id="ai-agent">
+                <h2 class="page-title">AI Agent Chat</h2>
+                <div class="chat-container">
+                    <div class="messages" id="messages">
+                        <div class="message ai">
+                            <strong>AI Agent:</strong> Привет! Я ваш AI помощник. Чем могу помочь?
+                        </div>
+                    </div>
+                    <div class="input-area">
+                        <input type="text" class="message-input" id="messageInput" placeholder="Напишите ваше сообщение...">
+                        <button class="send-btn" onclick="sendMessage()">Отправить</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terminal Page -->
+            <div class="page" id="terminal">
+                <h2 class="page-title">Smart Terminal</h2>
+                <div class="terminal" id="terminal">
+                    <div>AI Agent Terminal v1.0</div>
+                    <div>Введите 'help' для списка команд</div>
+                    <div>Нажмите Ctrl+I для Agent Mode</div>
+                    <br>
+                    <div id="terminal-output"></div>
+                    <div style="display: flex;">
+                        <span>$ </span>
+                        <input type="text" class="terminal-input" id="terminalInput" onkeypress="handleTerminalInput(event)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Files Page -->
+            <div class="page" id="files">
+                <h2 class="page-title">File Manager</h2>
+                <div class="info-card">
+                    <h3>📁 Текущая папка: C:\Users\KOT\Documents\GitHub\agent</h3>
+                    <p>Файловый менеджер для просмотра проекта</p>
+                </div>
+                <div class="info-card">
+                    <h3>📄 package.json</h3>
+                    <p>Конфигурация проекта - 2.1 KB</p>
+                </div>
+                <div class="info-card">
+                    <h3>📁 src/</h3>
+                    <p>Исходный код приложения</p>
+                </div>
+                <div class="info-card">
+                    <h3>📁 node_modules/</h3>
+                    <p>Зависимости проекта</p>
+                </div>
+            </div>
+
+            <!-- SSH Page -->
+            <div class="page" id="ssh">
+                <h2 class="page-title">SSH Server Manager</h2>
+                <div class="info-card">
+                    <h3>🔧 SSH Подключения</h3>
+                    <p>Управление удаленными серверами</p>
+                    <div style="margin-top: 1rem;">
+                        <span class="status offline">Не подключено</span>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <h3>➕ Добавить сервер</h3>
+                    <p>Настройте подключение к вашему Ubuntu серверу</p>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div class="page" id="settings">
+                <h2 class="page-title">Settings</h2>
+                <div class="info-card">
+                    <h3>🤖 AI Settings</h3>
+                    <p>Настройки искусственного интеллекта</p>
+                </div>
+                <div class="info-card">
+                    <h3>🎨 Theme</h3>
+                    <p>Тема оформления: Gradient Blue</p>
+                </div>
+                <div class="info-card">
+                    <h3>🔧 System</h3>
+                    <p>Node.js: v22.19.0</p>
+                    <p>Status: <span class="status online">Online</span></p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Remove active class from all nav items and pages
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+                
+                // Add active class to clicked nav item
+                item.classList.add('active');
+                
+                // Show corresponding page
+                const pageId = item.getAttribute('data-page');
+                document.getElementById(pageId).classList.add('active');
+            });
+        });
+
+        // Chat functionality
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const messages = document.getElementById('messages');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user';
+            userMsg.innerHTML = `<strong>Вы:</strong> ${message}`;
+            messages.appendChild(userMsg);
+            
+            // Clear input
+            input.value = '';
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'message ai';
+                aiMsg.innerHTML = `<strong>AI Agent:</strong> Я получил ваше сообщение: "${message}". Это демо-версия, поэтому я не могу дать полноценный ответ, но в полной версии я бы помог вам с этим вопросом!`;
+                messages.appendChild(aiMsg);
+                messages.scrollTop = messages.scrollHeight;
+            }, 1000);
+            
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // Terminal functionality
+        function handleTerminalInput(event) {
+            if (event.key === 'Enter') {
+                const input = document.getElementById('terminalInput');
+                const output = document.getElementById('terminal-output');
+                const command = input.value.trim();
+                
+                if (!command) return;
+                
+                // Add command to output
+                const cmdDiv = document.createElement('div');
+                cmdDiv.textContent = `$ ${command}`;
+                output.appendChild(cmdDiv);
+                
+                // Process command
+                let response = '';
+                switch(command.toLowerCase()) {
+                    case 'help':
+                        response = `Доступные команды:
+help     - показать эту справку
+ls       - список файлов
+pwd      - текущая папка
+clear    - очистить экран
+node -v  - версия Node.js
+whoami   - текущий пользователь`;
+                        break;
+                    case 'ls':
+                        response = `package.json  src/  node_modules/  README.md  start.bat`;
+                        break;
+                    case 'pwd':
+                        response = `C:\\Users\\KOT\\Documents\\GitHub\\agent`;
+                        break;
+                    case 'clear':
+                        output.innerHTML = '';
+                        input.value = '';
+                        return;
+                    case 'node -v':
+                        response = `v22.19.0`;
+                        break;
+                    case 'whoami':
+                        response = `KOT`;
+                        break;
+                    default:
+                        response = `Команда '${command}' не найдена. Введите 'help' для списка команд.`;
+                }
+                
+                const responseDiv = document.createElement('div');
+                responseDiv.innerHTML = response.replace(/\n/g, '<br>');
+                output.appendChild(responseDiv);
+                
+                input.value = '';
+                
+                // Scroll to bottom
+                const terminal = document.getElementById('terminal');
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+        }
+
+        // Enter key for chat
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        console.log('🚀 AI Agent Desktop (Simple Version) загружен!');
+        console.log('💡 Это упрощенная версия без React и сложной сборки');
+    </script>
+</body>
+</html>
+
