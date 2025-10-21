@@ -16,6 +16,7 @@ const navigation = [
   { name: 'Project', href: '/project', icon: FolderOpenIcon },
   { name: 'Files', href: '/files', icon: DocumentTextIcon },
   { name: 'AI Terminal', href: '/terminal', icon: CommandLineIcon },
+  { name: 'Web Terminal', href: '/web-terminal', icon: CommandLineIcon },
   { name: 'SSH Server', href: '/server', icon: ServerIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ]

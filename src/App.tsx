@@ -8,6 +8,7 @@ import FileManager from './pages/FileManager'
 import { ProjectSelector } from './pages/ProjectSelector'
 import { ServerManager } from './pages/ServerManager'
 import WarpTerminalPage from './pages/WarpTerminalPage'
+import SimpleWebTerminalPage from './pages/SimpleWebTerminalPage'
 import { useAppStore } from './store/appStore'
 import { aiService } from './services/aiService'
 
@@ -53,6 +54,7 @@ function App() {
           <Route path="/files" element={<FileManager />} />
           <Route path="/server" element={<ServerManager />} />
           <Route path="/terminal" element={<WarpTerminalPage />} />
+          <Route path="/web-terminal" element={<SimpleWebTerminalPage />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </Layout>
