@@ -208,35 +208,6 @@
 
         .status {
             display: inline-block;
-
-        .file-manager {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .file-item {
-            padding: 8px 12px;
-            margin: 4px 0;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 4px;
-            color: white;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .file-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .file-item.folder {
-            background: rgba(100, 149, 237, 0.2);
-        }
-
-        .file-item.file {
-            background: rgba(144, 238, 144, 0.2);
-        }
             padding: 0.25rem 0.75rem;
             border-radius: 20px;
             font-size: 0.875rem;
@@ -305,15 +276,23 @@
             <div class="page" id="files">
                 <h2 class="page-title">File Manager</h2>
                 <div class="info-card">
-                    <h3>📁 Текущая папка: <span id="currentPath">Загружаем...</span></h3>
-                    <p>Файловый менеджер для просмотра папок на компьютере</p>
-                    <button onclick="loadFiles()" style="background: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin-top: 10px;">
-                        🔄 Обновить
-                    </button>
+                    <h3>📁 Текущая папка: C:\Users\KOT\Documents\GitHub\agent</h3>
+                    <p>Файловый менеджер для просмотра проекта</p>
                 </div>
-                <div class="file-manager" id="fileList" style="max-height: 400px; overflow-y: auto;">
-                    <div class="file-item">📂 Загружаем файлы...</div>
+                <div class="info-card">
+                    <h3>📄 package.json</h3>
+                    <p>Конфигурация проекта - 2.1 KB</p>
                 </div>
+                <div class="info-card">
+                    <h3>📁 src/</h3>
+                    <p>Исходный код приложения</p>
+                </div>
+                <div class="info-card">
+                    <h3>📁 node_modules/</h3>
+                    <p>Зависимости проекта</p>
+                </div>
+            </div>
+
             <!-- SSH Page -->
             <div class="page" id="ssh">
                 <h2 class="page-title">SSH Server Manager</h2>
@@ -426,108 +405,6 @@
             });
         }
 
-
-        // File manager functionality
-        let currentPath = "";
-        
-        function loadFiles(path = "") {
-            const fileList = document.getElementById("fileList");
-            fileList.innerHTML = "<div class="file-item">📂 Загружаем...</div>";
-            
-            const url = path ? `/api/browse?path=${encodeURIComponent(path)}` : "/api/browse";
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        fileList.innerHTML = `<div class="file-item">❌ Ошибка: ${data.error}</div>`;
-                        return;
-                    }
-                    
-                    currentPath = data.currentPath;
-                    document.getElementById("currentPath").textContent = currentPath;
-                    
-                    let html = "";
-                    
-                    // Parent directory button
-                    if (data.parentPath !== data.currentPath) {
-                        html += `<div class="file-item folder" onclick="loadFiles('${data.parentPath}')">
-                            📁 .. (Назад)
-                        </div>`;
-                    }
-                    
-                    // Files and folders
-                    data.items.forEach(item => {
-                        const icon = item.type === "directory" ? "📁" : "📄";
-                        const className = item.type === "directory" ? "folder" : "file";
-                        const onclick = item.type === "directory" 
-                            ? `loadFiles('${item.path.replace(/\/g, "\\")}')` 
-                            : `openFile('${item.path.replace(/\/g, "\\")}', '${item.name}')`;
-                        
-                        const size = item.type === "file" ? formatFileSize(item.size) : "";
-                        
-                        html += `<div class="file-item ${className}" onclick="${onclick}">
-                            ${icon} ${item.name} ${size}
-                        </div>`;
-                    });
-                    
-                    fileList.innerHTML = html;
-                })
-                .catch(error => {
-                    fileList.innerHTML = `<div class="file-item">❌ Ошибка загрузки: ${error.message}</div>`;
-                });
-        }
-        
-        function formatFileSize(bytes) {
-            if (bytes === 0) return "";
-            const k = 1024;
-            const sizes = ["B", "KB", "MB", "GB"];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return `(${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]})`;
-        }
-        
-        function openFile(filePath, fileName) {
-            fetch(`/api/browse?path=${encodeURIComponent(filePath)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        alert(`Ошибка открытия файла: ${data.error}`);
-                        return;
-                    }
-                    
-                    const modal = document.createElement("div");
-                    modal.style.cssText = `
-                        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                        background: rgba(0,0,0,0.8); z-index: 1000; display: flex;
-                        align-items: center; justify-content: center;
-                    `;
-                    
-                    const content = document.createElement("div");
-                    content.style.cssText = `
-                        background: white; padding: 20px; border-radius: 10px;
-                        max-width: 80%; max-height: 80%; overflow: auto;
-                        position: relative;
-                    `;
-                    
-                    content.innerHTML = `
-                        <button onclick="this.parentElement.parentElement.remove()" 
-                                style="position: absolute; top: 10px; right: 10px; 
-                                       background: #ff4444; color: white; border: none; 
-                                       border-radius: 5px; padding: 5px 10px; cursor: pointer;">
-                            ✕ Закрыть
-                        </button>
-                        <h3>📄 ${fileName}</h3>
-                        <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px; 
-                                   overflow: auto; max-height: 400px;">${data.content}</pre>
-                    `;
-                    
-                    modal.appendChild(content);
-                    document.body.appendChild(modal);
-                })
-                .catch(error => {
-                    alert(`Ошибка открытия файла: ${error.message}`);
-                });
-        }
         // Terminal functionality
         function handleTerminalInput(event) {
             if (event.key === 'Enter') {
@@ -595,11 +472,6 @@ whoami   - текущий пользователь`;
 
         console.log('🚀 AI Agent Desktop (Simple Version) загружен!');
         console.log('💡 Это упрощенная версия без React и сложной сборки');
-
-        // Initialize file manager when page loads
-        document.addEventListener("DOMContentLoaded", function() {
-            loadFiles();
-        });
     </script>
 </body>
 </html>
