@@ -20,14 +20,6 @@ echo 🚀 Запускаем простую версию...
 echo (Без Vite и Rollup - только чистый HTML/JS)
 echo.
 
-REM Проверяем есть ли server.js
-if not exist "server.js" (
-    echo ❌ server.js не найден!
-    echo 💡 Убедитесь что вы скачали все файлы
-    pause
-    exit /b 1
-)
-
 REM Проверяем есть ли simple-index.html
 if not exist "simple-index.html" (
     echo ❌ simple-index.html не найден!
@@ -41,8 +33,19 @@ echo 💡 Откройте браузер и перейдите по адрес�
 echo 💡 Для остановки нажмите Ctrl+C
 echo.
 
-REM Запускаем сервер через server.js
-node server.js
+REM Пробуем запустить сервер (сначала .cjs, потом .mjs)
+if exist "server.cjs" (
+    echo 📦 Запускаем через server.cjs...
+    node server.cjs
+) else if exist "server.mjs" (
+    echo 📦 Запускаем через server.mjs...
+    node server.mjs
+) else (
+    echo ❌ Файлы сервера не найдены!
+    echo 💡 Попробуйте super-simple-start.bat
+    pause
+    exit /b 1
+)
 
 pause
 
