@@ -18,8 +18,8 @@ if exist "package-lock.json" (
 echo 🔄 Очищаем кэш npm...
 call npm cache clean --force
 
-echo 📦 Устанавливаем зависимости с оптимизированными флагами...
-call npm install --legacy-peer-deps --no-audit --no-fund --silent
+echo 📦 Устанавливаем веб-совместимые зависимости...
+call npm install --no-optional --legacy-peer-deps --no-audit --no-fund
 
 if %errorlevel% neq 0 (
     echo.

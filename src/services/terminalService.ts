@@ -1,5 +1,6 @@
-import { spawn, ChildProcess } from 'child_process';
-import { platform } from 'os';
+// Веб-совместимая версия без node-pty
+// import { spawn, ChildProcess } from 'child_process';
+// import { platform } from 'os';
 
 export interface CommandResult {
   output: string;
@@ -15,7 +16,7 @@ export interface TerminalSession {
 
 class TerminalService {
   private sessions: Map<string, TerminalSession> = new Map();
-  private processes: Map<string, ChildProcess> = new Map();
+  // private processes: Map<string, ChildProcess> = new Map();
 
   // Создание новой сессии терминала
   createSession(id: string, initialCwd?: string): TerminalSession {
@@ -35,7 +36,7 @@ class TerminalService {
     return this.sessions.get(id);
   }
 
-  // Выполнение команды в сессии
+  // Выполнение команды в сессии (веб-совместимая версия)
   async executeCommand(sessionId: string, command: string): Promise<CommandResult> {
     const session = this.sessions.get(sessionId);
     if (!session) {
@@ -45,52 +46,138 @@ class TerminalService {
     // Добавляем команду в историю
     session.history.push(command);
 
-    return new Promise((resolve) => {
-      let output = '';
-      let errorOutput = '';
+    // Веб-совместимая симуляция выполнения команд
+    return this.simulateCommand(session, command);
+  }
 
-      // Определяем shell в зависимости от платформы
-      const shell = this.getShell();
-      const shellArgs = this.getShellArgs(command);
+  // Симуляция выполнения команд для веб-версии
+  private async simulateCommand(session: TerminalSession, command: string): Promise<CommandResult> {
+    const cmd = command.trim().toLowerCase();
+    
+    // Обработка cd команд
+    if (cmd.startsWith('cd ')) {
+      this.handleCdCommand(session, command);
+      return {
+        output: `Changed directory to: ${session.cwd}`,
+        exitCode: 0
+      };
+    }
 
-      const childProcess = spawn(shell, shellArgs, {
-        cwd: session.cwd,
-        env: session.env,
-        stdio: ['pipe', 'pipe', 'pipe']
-      });
+    // Симуляция популярных команд
+    if (cmd === 'pwd') {
+      return {
+        output: session.cwd,
+        exitCode: 0
+      };
+    }
 
-      this.processes.set(`${sessionId}-${Date.now()}`, childProcess);
+    if (cmd === 'ls' || cmd === 'dir') {
+      return {
+        output: `📁 Documents/\n📁 Downloads/\n📁 Pictures/\n📄 README.md\n📄 package.json`,
+        exitCode: 0
+      };
+    }
 
-      childProcess.stdout?.on('data', (data) => {
-        output += data.toString();
-      });
+    if (cmd === 'ls -la') {
+      return {
+        output: `total 8
+drwxr-xr-x  5 user user  160 Oct 21 08:00 .
+drwxr-xr-x  3 user user   96 Oct 21 07:30 ..
+-rw-r--r--  1 user user 1024 Oct 21 08:00 README.md
+-rw-r--r--  1 user user 2048 Oct 21 08:00 package.json
+drwxr-xr-x  2 user user   64 Oct 21 07:45 src`,
+        exitCode: 0
+      };
+    }
 
-      childProcess.stderr?.on('data', (data) => {
-        errorOutput += data.toString();
-      });
+    if (cmd === 'ps aux' || cmd === 'tasklist') {
+      return {
+        output: `PID    COMMAND
+1234   node server.js
+5678   chrome.exe
+9012   code.exe
+3456   ai-agent-desktop`,
+        exitCode: 0
+      };
+    }
 
-      childProcess.on('close', (code) => {
-        const exitCode = code || 0;
-        const finalOutput = output + (errorOutput ? `\nSTDERR:\n${errorOutput}` : '');
-        
-        // Обновляем рабочую директорию если команда cd
-        if (command.trim().startsWith('cd ')) {
-          this.handleCdCommand(session, command);
-        }
+    if (cmd === 'node --version' || cmd === 'node -v') {
+      return {
+        output: 'v22.19.0',
+        exitCode: 0
+      };
+    }
 
-        resolve({
-          output: finalOutput,
-          exitCode
-        });
-      });
+    if (cmd === 'npm --version') {
+      return {
+        output: '10.9.0',
+        exitCode: 0
+      };
+    }
 
-      childProcess.on('error', (error) => {
-        resolve({
-          output: `Error: ${error.message}`,
-          exitCode: 1
-        });
-      });
-    });
+    if (cmd === 'git status') {
+      return {
+        output: `On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   src/components/WarpTerminal.tsx
+
+no changes added to commit (use "git add" or "git commit -a")`,
+        exitCode: 0
+      };
+    }
+
+    if (cmd.startsWith('ping ')) {
+      const target = cmd.split(' ')[1] || 'google.com';
+      return {
+        output: `PING ${target} (142.250.191.14): 56 data bytes
+64 bytes from 142.250.191.14: icmp_seq=0 ttl=117 time=12.345 ms
+64 bytes from 142.250.191.14: icmp_seq=1 ttl=117 time=11.234 ms
+64 bytes from 142.250.191.14: icmp_seq=2 ttl=117 time=13.456 ms
+
+--- ${target} ping statistics ---
+3 packets transmitted, 3 packets received, 0.0% packet loss`,
+        exitCode: 0
+      };
+    }
+
+    if (cmd === 'whoami') {
+      return {
+        output: 'user',
+        exitCode: 0
+      };
+    }
+
+    if (cmd === 'date') {
+      return {
+        output: new Date().toString(),
+        exitCode: 0
+      };
+    }
+
+    if (cmd.startsWith('echo ')) {
+      const text = command.slice(5);
+      return {
+        output: text,
+        exitCode: 0
+      };
+    }
+
+    if (cmd === 'clear' || cmd === 'cls') {
+      return {
+        output: '\x1b[2J\x1b[H', // ANSI clear screen
+        exitCode: 0
+      };
+    }
+
+    // Для неизвестных команд
+    return {
+      output: `bash: ${command}: command not found\n\n💡 Это веб-версия терминала с симуляцией команд.\nПоддерживаемые команды: ls, pwd, cd, ps, node -v, npm -v, git status, ping, whoami, date, echo, clear`,
+      exitCode: 127
+    };
   }
 
   // Обработка команды cd
@@ -116,45 +203,23 @@ class TerminalService {
     }
   }
 
-  // Получение подходящего shell
+  // Получение подходящего shell (веб-версия)
   private getShell(): string {
-    const os = platform();
-    
-    if (os === 'win32') {
-      return process.env.COMSPEC || 'cmd.exe';
-    } else {
-      return process.env.SHELL || '/bin/bash';
-    }
+    // Определяем платформу по user agent
+    const isWindows = navigator.userAgent.includes('Windows');
+    return isWindows ? 'cmd.exe' : '/bin/bash';
   }
 
-  // Получение аргументов для shell
+  // Получение аргументов для shell (веб-версия)
   private getShellArgs(command: string): string[] {
-    const os = platform();
-    
-    if (os === 'win32') {
-      return ['/c', command];
-    } else {
-      return ['-c', command];
-    }
+    const isWindows = navigator.userAgent.includes('Windows');
+    return isWindows ? ['/c', command] : ['-c', command];
   }
 
-  // Завершение процесса
+  // Завершение процесса (веб-версия - заглушка)
   killProcess(sessionId: string, processId?: string) {
-    if (processId) {
-      const process = this.processes.get(processId);
-      if (process) {
-        process.kill();
-        this.processes.delete(processId);
-      }
-    } else {
-      // Завершаем все процессы сессии
-      for (const [id, process] of this.processes.entries()) {
-        if (id.startsWith(sessionId)) {
-          process.kill();
-          this.processes.delete(id);
-        }
-      }
-    }
+    // В веб-версии процессы не запускаются, поэтому просто логируем
+    console.log(`Simulated kill process for session ${sessionId}, process ${processId}`);
   }
 
   // Очистка сессии
@@ -163,22 +228,29 @@ class TerminalService {
     this.sessions.delete(sessionId);
   }
 
-  // Получение информации о системе
+  // Получение информации о системе (веб-версия)
   async getSystemInfo(): Promise<Record<string, any>> {
-    const os = require('os');
+    const isWindows = navigator.userAgent.includes('Windows');
+    const isMac = navigator.userAgent.includes('Mac');
+    const isLinux = navigator.userAgent.includes('Linux');
+    
+    let platform = 'unknown';
+    if (isWindows) platform = 'win32';
+    else if (isMac) platform = 'darwin';
+    else if (isLinux) platform = 'linux';
     
     return {
-      platform: os.platform(),
-      arch: os.arch(),
-      hostname: os.hostname(),
-      uptime: os.uptime(),
+      platform,
+      arch: 'x64',
+      hostname: 'localhost',
+      uptime: Math.floor(performance.now() / 1000),
       memory: {
-        total: os.totalmem(),
-        free: os.freemem()
+        total: 8 * 1024 * 1024 * 1024, // 8GB симуляция
+        free: 4 * 1024 * 1024 * 1024   // 4GB свободно
       },
-      cpus: os.cpus().length,
-      nodeVersion: process.version,
-      cwd: process.cwd()
+      cpus: navigator.hardwareConcurrency || 4,
+      nodeVersion: 'v22.19.0',
+      cwd: '/home/user' // Симуляция
     };
   }
 
@@ -199,7 +271,8 @@ class TerminalService {
       'tasklist', 'taskkill', 'systeminfo', 'ipconfig', 'ping', 'netstat'
     ];
 
-    const commands = platform() === 'win32' ? 
+    const isWindows = navigator.userAgent.includes('Windows');
+    const commands = isWindows ? 
       [...commonCommands, ...windowsCommands] : 
       commonCommands;
 

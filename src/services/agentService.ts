@@ -1,237 +1,262 @@
 import { aiService } from './aiService';
 import { terminalService, CommandResult } from './terminalService';
-import { platform } from 'os';
 
 export interface AgentTask {
   id: string;
-  query: string;
-  steps: AgentStep[];
+  description: string;
+  steps: string[];
+  currentStep: number;
   status: 'pending' | 'running' | 'completed' | 'failed';
-  result?: string;
-  error?: string;
+  results: CommandResult[];
+  createdAt: Date;
+  completedAt?: Date;
 }
 
-export interface AgentStep {
-  id: string;
-  description: string;
-  command?: string;
-  output?: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  timestamp: Date;
+export interface AgentResponse {
+  success: boolean;
+  message: string;
+  commands?: string[];
+  task?: AgentTask;
 }
 
 class AgentService {
   private tasks: Map<string, AgentTask> = new Map();
 
-  // Выполнение задачи в Agent Mode
-  async executeTask(sessionId: string, query: string): Promise<string> {
-    const taskId = `task-${Date.now()}`;
+  // Определение платформы для веб-версии
+  private getPlatform(): string {
+    const isWindows = navigator.userAgent.includes('Windows');
+    const isMac = navigator.userAgent.includes('Mac');
+    const isLinux = navigator.userAgent.includes('Linux');
     
-    const task: AgentTask = {
-      id: taskId,
-      query,
-      steps: [],
-      status: 'pending'
-    };
+    if (isWindows) return 'win32';
+    if (isMac) return 'darwin';
+    if (isLinux) return 'linux';
+    return 'unknown';
+  }
 
-    this.tasks.set(taskId, task);
-
+  // Обработка запроса на естественном языке
+  async processNaturalLanguageCommand(
+    sessionId: string, 
+    userInput: string
+  ): Promise<AgentResponse> {
     try {
+      // Создаем новую задачу
+      const taskId = `task-${Date.now()}`;
+      const task: AgentTask = {
+        id: taskId,
+        description: userInput,
+        steps: [],
+        currentStep: 0,
+        status: 'pending',
+        results: [],
+        createdAt: new Date()
+      };
+
+      this.tasks.set(taskId, task);
+
+      // Анализируем запрос и создаем план выполнения
+      const plan = await this.createExecutionPlan(userInput);
+      
+      if (!plan.success) {
+        task.status = 'failed';
+        return plan;
+      }
+
+      task.steps = plan.commands || [];
       task.status = 'running';
+
+      // Выполняем команды пошагово
+      const results = await this.executeTaskSteps(sessionId, task);
       
-      // Анализируем запрос и определяем план действий
-      const plan = await this.analyzePlan(query);
-      
-      // Выполняем план пошагово
-      const result = await this.executePlan(sessionId, task, plan);
-      
-      task.status = 'completed';
-      task.result = result;
-      
-      return result;
+      task.status = results.success ? 'completed' : 'failed';
+      task.completedAt = new Date();
+
+      return {
+        success: results.success,
+        message: results.message,
+        task
+      };
+
     } catch (error) {
-      task.status = 'failed';
-      task.error = error instanceof Error ? error.message : String(error);
-      throw error;
+      return {
+        success: false,
+        message: `Ошибка обработки запроса: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`
+      };
     }
   }
 
-  // Анализ запроса и создание плана
-  private async analyzePlan(query: string): Promise<string[]> {
-    const systemPrompt = `Ты - AI агент терминала, который помогает пользователям выполнять задачи через командную строку.
-
-Твоя задача - проанализировать запрос пользователя и создать пошаговый план выполнения.
+  // Создание плана выполнения
+  private async createExecutionPlan(userInput: string): Promise<AgentResponse> {
+    const systemPrompt = `Ты - AI ассистент для терминала. Твоя задача - разбить пользовательский запрос на последовательность команд терминала.
 
 Правила:
 1. Разбей задачу на простые шаги
 2. Каждый шаг должен быть выполним одной командой
-3. Учитывай платформу: ${platform()}
+3. Учитывай платформу: ${this.getPlatform()}
 4. Предлагай безопасные команды
 5. Объясняй что делает каждая команда
 
-Формат ответа - список шагов, каждый с новой строки, начинающийся с "STEP:".
+Отвечай в формате JSON:
+{
+  "success": true,
+  "message": "Описание плана",
+  "commands": ["команда1", "команда2", ...]
+}
 
-Пример:
-STEP: Проверить текущую директорию
-STEP: Создать новую папку
-STEP: Перейти в созданную папку
+Если задача невыполнима или опасна, верни:
+{
+  "success": false,
+  "message": "Причина отказа"
+}`;
 
-Запрос пользователя: ${query}`;
+    const userPrompt = `Пользователь просит: "${userInput}"
+
+Создай план выполнения этой задачи.`;
 
     try {
-      const response = await aiService.sendMessage([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: query }
-      ]);
-
-      // Извлекаем шаги из ответа
-      const steps = response.split('\n')
-        .filter(line => line.startsWith('STEP:'))
-        .map(line => line.replace('STEP:', '').trim());
-
-      return steps.length > 0 ? steps : [query];
+      const response = await aiService.generateResponse(systemPrompt, userPrompt);
+      
+      // Пытаемся распарсить JSON ответ
+      try {
+        const parsed = JSON.parse(response);
+        return parsed;
+      } catch {
+        // Если не JSON, создаем простой план
+        return {
+          success: true,
+          message: `План выполнения: ${response}`,
+          commands: [userInput] // Используем исходный запрос как команду
+        };
+      }
     } catch (error) {
-      console.error('Error analyzing plan:', error);
-      // Fallback - возвращаем исходный запрос как единственный шаг
-      return [query];
+      return {
+        success: false,
+        message: `Не удалось создать план: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`
+      };
     }
   }
 
-  // Выполнение плана
-  private async executePlan(sessionId: string, task: AgentTask, plan: string[]): Promise<string> {
-    let finalResult = '';
-    
-    for (let i = 0; i < plan.length; i++) {
-      const stepDescription = plan[i];
-      const stepId = `step-${i}`;
-      
-      const step: AgentStep = {
-        id: stepId,
-        description: stepDescription,
-        status: 'pending',
-        timestamp: new Date()
-      };
-      
-      task.steps.push(step);
-      step.status = 'running';
+  // Выполнение шагов задачи
+  private async executeTaskSteps(sessionId: string, task: AgentTask): Promise<AgentResponse> {
+    const results: CommandResult[] = [];
+    let allSuccessful = true;
+
+    for (let i = 0; i < task.steps.length; i++) {
+      task.currentStep = i;
+      const step = task.steps[i];
 
       try {
         // Получаем команду для выполнения шага
-        const command = await this.getCommandForStep(stepDescription);
-        step.command = command;
+        const command = await this.getCommandForStep(step);
+        
+        if (command === 'NO_COMMAND') {
+          // Шаг не требует выполнения команды
+          results.push({
+            output: `Шаг выполнен: ${step}`,
+            exitCode: 0
+          });
+          continue;
+        }
 
-        if (command) {
-          // Выполняем команду
-          const result = await terminalService.executeCommand(sessionId, command);
-          step.output = result.output;
+        // Выполняем команду
+        const result = await terminalService.executeCommand(sessionId, command);
+        results.push(result);
+
+        // Если команда завершилась с ошибкой, пытаемся исправить
+        if (result.exitCode !== 0) {
+          const fixedCommand = await this.fixCommand(command, result.output);
           
-          if (result.exitCode === 0) {
-            step.status = 'completed';
-            finalResult += `✅ ${stepDescription}\n`;
-            if (result.output) {
-              finalResult += `${result.output}\n\n`;
+          if (fixedCommand) {
+            const fixedResult = await terminalService.executeCommand(sessionId, fixedCommand);
+            results.push(fixedResult);
+            
+            if (fixedResult.exitCode !== 0) {
+              allSuccessful = false;
             }
           } else {
-            // Пытаемся исправить ошибку
-            const fixedCommand = await this.fixCommand(command, result.output);
-            if (fixedCommand && fixedCommand !== command) {
-              const fixedResult = await terminalService.executeCommand(sessionId, fixedCommand);
-              step.command = fixedCommand;
-              step.output = fixedResult.output;
-              
-              if (fixedResult.exitCode === 0) {
-                step.status = 'completed';
-                finalResult += `✅ ${stepDescription} (исправлено)\n`;
-                if (fixedResult.output) {
-                  finalResult += `${fixedResult.output}\n\n`;
-                }
-              } else {
-                step.status = 'failed';
-                finalResult += `❌ ${stepDescription}: ${fixedResult.output}\n\n`;
-              }
-            } else {
-              step.status = 'failed';
-              finalResult += `❌ ${stepDescription}: ${result.output}\n\n`;
-            }
+            allSuccessful = false;
           }
-        } else {
-          // Если команда не нужна, просто отмечаем как выполненное
-          step.status = 'completed';
-          finalResult += `ℹ️ ${stepDescription}\n\n`;
         }
+
       } catch (error) {
-        step.status = 'failed';
-        step.output = error instanceof Error ? error.message : String(error);
-        finalResult += `❌ ${stepDescription}: ${step.output}\n\n`;
+        results.push({
+          output: `Ошибка выполнения шага "${step}": ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`,
+          exitCode: 1
+        });
+        allSuccessful = false;
       }
     }
 
-    return finalResult.trim();
+    task.results = results;
+
+    return {
+      success: allSuccessful,
+      message: allSuccessful 
+        ? 'Все шаги выполнены успешно' 
+        : 'Некоторые шаги завершились с ошибками'
+    };
   }
 
   // Получение команды для выполнения шага
-  private async getCommandForStep(stepDescription: string): Promise<string | null> {
-    const systemPrompt = `Ты - эксперт по командной строке для платформы ${platform()}.
-
-Твоя задача - предложить ОДНУ команду для выполнения описанного шага.
+  private async getCommandForStep(step: string): Promise<string> {
+    const systemPrompt = `Ты - эксперт по командам терминала. Твоя задача - преобразовать описание шага в конкретную команду терминала.
 
 Правила:
 1. Отвечай ТОЛЬКО командой, без объяснений
 2. Если шаг не требует команды, отвечай "NO_COMMAND"
 3. Используй безопасные команды
-4. Учитывай платформу: ${platform()}
+4. Учитывай платформу: ${this.getPlatform()}
 
 Примеры:
 Шаг: "Показать содержимое папки" → ls -la (или dir для Windows)
-Шаг: "Создать папку test" → mkdir test
 Шаг: "Проверить версию Node.js" → node --version
+Шаг: "Создать папку test" → mkdir test
+Шаг: "Объяснить результат" → NO_COMMAND`;
 
-Шаг: ${stepDescription}`;
+    const userPrompt = `Шаг: "${step}"`;
 
     try {
-      const response = await aiService.sendMessage([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: stepDescription }
-      ]);
-
-      const command = response.trim();
-      return command === 'NO_COMMAND' ? null : command;
+      const response = await aiService.generateResponse(systemPrompt, userPrompt);
+      return response.trim();
     } catch (error) {
-      console.error('Error getting command for step:', error);
-      return null;
+      // Fallback - возвращаем исходный шаг как команду
+      return step;
     }
   }
 
   // Исправление команды при ошибке
   private async fixCommand(originalCommand: string, errorOutput: string): Promise<string | null> {
-    const systemPrompt = `Ты - эксперт по исправлению ошибок командной строки для платформы ${platform()}.
+    const systemPrompt = `Ты - эксперт по исправлению ошибок командной строки для платформы ${this.getPlatform()}.
 
 Твоя задача - исправить команду, которая завершилась с ошибкой.
 
 Правила:
-1. Проанализируй ошибку
-2. Предложи исправленную команду
+1. Анализируй ошибку и предлагай исправление
+2. Отвечай ТОЛЬКО исправленной командой
 3. Если исправить нельзя, отвечай "CANNOT_FIX"
-4. Отвечай ТОЛЬКО исправленной командой
+4. Используй только безопасные команды
 
-Исходная команда: ${originalCommand}
-Ошибка: ${errorOutput}`;
+Примеры:
+Команда: "ls -xyz" Ошибка: "invalid option" → ls -la
+Команда: "node -xyz" Ошибка: "bad option" → node --version
+Команда: "rm -rf /" Ошибка: любая → CANNOT_FIX`;
+
+    const userPrompt = `Команда: "${originalCommand}"
+Ошибка: "${errorOutput}"
+
+Как исправить?`;
 
     try {
-      const response = await aiService.sendMessage([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Исправь команду: ${originalCommand}\nОшибка: ${errorOutput}` }
-      ]);
-
-      const fixedCommand = response.trim();
-      return fixedCommand === 'CANNOT_FIX' ? null : fixedCommand;
+      const response = await aiService.generateResponse(systemPrompt, userPrompt);
+      const fixed = response.trim();
+      
+      return fixed === 'CANNOT_FIX' ? null : fixed;
     } catch (error) {
-      console.error('Error fixing command:', error);
       return null;
     }
   }
 
-  // Получение задачи
+  // Получение задачи по ID
   getTask(taskId: string): AgentTask | undefined {
     return this.tasks.get(taskId);
   }
@@ -242,61 +267,14 @@ STEP: Перейти в созданную папку
   }
 
   // Очистка завершенных задач
-  clearCompletedTasks() {
+  clearCompletedTasks(): void {
     for (const [id, task] of this.tasks.entries()) {
       if (task.status === 'completed' || task.status === 'failed') {
         this.tasks.delete(id);
       }
     }
   }
-
-  // Отмена задачи
-  cancelTask(taskId: string) {
-    const task = this.tasks.get(taskId);
-    if (task && task.status === 'running') {
-      task.status = 'failed';
-      task.error = 'Cancelled by user';
-    }
-  }
-
-  // Быстрые команды для типовых задач
-  async getQuickCommand(description: string): Promise<string | null> {
-    const quickCommands: Record<string, string> = {
-      // Файловая система
-      'показать файлы': platform() === 'win32' ? 'dir' : 'ls -la',
-      'текущая папка': 'pwd',
-      'создать папку': 'mkdir',
-      'удалить файл': platform() === 'win32' ? 'del' : 'rm',
-      
-      // Система
-      'процессы': platform() === 'win32' ? 'tasklist' : 'ps aux',
-      'память': platform() === 'win32' ? 'systeminfo' : 'free -h',
-      'диск': platform() === 'win32' ? 'dir' : 'df -h',
-      
-      // Разработка
-      'версия node': 'node --version',
-      'версия npm': 'npm --version',
-      'git статус': 'git status',
-      'установить пакет': 'npm install',
-      
-      // Сеть
-      'пинг': 'ping google.com',
-      'ip адрес': platform() === 'win32' ? 'ipconfig' : 'ifconfig',
-      'порты': platform() === 'win32' ? 'netstat -an' : 'netstat -tulpn'
-    };
-
-    const lowerDesc = description.toLowerCase();
-    
-    for (const [key, command] of Object.entries(quickCommands)) {
-      if (lowerDesc.includes(key)) {
-        return command;
-      }
-    }
-
-    return null;
-  }
 }
 
-// Экспортируем синглтон
 export const agentService = new AgentService();
-export default agentService;
+

@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
-import { WebLinksAddon } from 'xterm-addon-web-links';
-import { SearchAddon } from 'xterm-addon-search';
+import { Terminal } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
+import { WebLinksAddon } from '@xterm/addon-web-links';
+import { SearchAddon } from '@xterm/addon-search';
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
 import { Sparkles, Play, Copy, RotateCcw } from 'lucide-react';
-import 'xterm/css/xterm.css';
+import '@xterm/xterm/css/xterm.css';
 
 interface CommandBlock {
   id: string;
