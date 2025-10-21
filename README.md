@@ -12,6 +12,14 @@ simple-start.bat
 
 **Откроется в браузере на http://localhost:3000** 🌐
 
+### 🔧 Если simple-start.bat не работает:
+
+```bash
+super-simple-start.bat
+```
+
+**Альтернативный запуск на http://localhost:8000** 🌐
+
 ### 🖥️ Десктопная версия (если нет проблем с Rollup)
 
 ```bash
