@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const os = require('os');
+const { spawn } = require('child_process');
 
 const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
@@ -27,6 +28,11 @@ const server = http.createServer((req, res) => {
   
   if (pathname === '/api/chat') {
     handleChat(req, res);
+    return;
+  }
+  
+  if (pathname === '/api/terminal') {
+    handleTerminal(req, res);
     return;
   }
   
@@ -134,36 +140,171 @@ function handleChat(req, res) {
   
   req.on('end', () => {
     try {
-      const { message } = JSON.parse(body);
+      const { message, useAI } = JSON.parse(body);
       
-      // Simple AI responses
-      const responses = {
-        'привет': 'Привет! Я AI Agent. Чем могу помочь?',
-        'как дела': 'Отлично! Готов помочь с вашими задачами.',
-        'помощь': 'Я могу помочь с файлами, кодом, вопросами. Просто спросите!',
-        'файлы': 'Используйте файловый менеджер слева для навигации по папкам.',
-        'папка': 'Выберите папку в файловом менеджере, чтобы просмотреть её содержимое.'
-      };
-      
-      let response = responses[message.toLowerCase()];
-      
-      if (!response) {
-        if (message.includes('файл') || message.includes('папк')) {
-          response = 'Для работы с файлами используйте файловый менеджер слева. Вы можете навигировать по папкам и просматривать файлы.';
-        } else if (message.includes('код') || message.includes('программ')) {
-          response = 'Я могу помочь с анализом кода! Выберите файл в файловом менеджере, и я смогу его проанализировать.';
-        } else {
-          response = `Понял ваш вопрос: "${message}". Это локальная версия с базовыми ответами. Для полноценного AI подключите OpenAI API.`;
+      if (useAI) {
+        // Умные AI ответы
+        const aiResponse = generateSmartResponse(message);
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({ 
+          response: aiResponse,
+          timestamp: new Date().toISOString(),
+          type: 'ai'
+        }));
+      } else {
+        // Simple AI responses
+        const responses = {
+          'привет': 'Привет! Я AI Agent. Чем могу помочь?',
+          'как дела': 'Отлично! Готов помочь с вашими задачами.',
+          'помощь': 'Я могу помочь с файлами, кодом, вопросами. Просто спросите!',
+          'файлы': 'Используйте файловый менеджер слева для навигации по папкам.',
+          'папка': 'Выберите папку в файловом менеджере, чтобы просмотреть её содержимое.'
+        };
+        
+        let response = responses[message.toLowerCase()];
+        
+        if (!response) {
+          if (message.includes('файл') || message.includes('папк')) {
+            response = 'Для работы с файлами используйте файловый менеджер слева. Вы можете навигировать по папкам и просматривать файлы.';
+          } else if (message.includes('код') || message.includes('программ')) {
+            response = 'Я могу помочь с анализом кода! Выберите файл в файловом менеджере, и я смогу его проанализировать.';
+          } else {
+            response = `Понял ваш вопрос: "${message}". Это локальная версия с базовыми ответами. Для полноценного AI подключите OpenAI API.`;
+          }
         }
+        
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({ 
+          response: response,
+          timestamp: new Date().toISOString(),
+          type: 'simple'
+        }));
       }
-      
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ response: response }));
     } catch (error) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Invalid JSON' }));
     }
   });
+}
+
+// Terminal API
+function handleTerminal(req, res) {
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk.toString();
+  });
+  
+  req.on('end', () => {
+    try {
+      const { command } = JSON.parse(body);
+      
+      // Безопасность: ограничиваем команды
+      const allowedCommands = ['ls', 'pwd', 'whoami', 'date', 'uname', 'df', 'free', 'ps', 'cat', 'head', 'tail', 'wc', 'grep', 'find', 'tree'];
+      const cmdParts = command.trim().split(' ');
+      const baseCmd = cmdParts[0];
+      
+      if (!allowedCommands.includes(baseCmd)) {
+        res.writeHead(400, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({ 
+          error: `Команда "${baseCmd}" не разрешена. Доступные команды: ${allowedCommands.join(', ')}` 
+        }));
+        return;
+      }
+      
+      const child = spawn(baseCmd, cmdParts.slice(1), {
+        cwd: process.cwd(),
+        env: process.env,
+        timeout: 10000 // 10 секунд максимум
+      });
+      
+      let output = '';
+      let errorOutput = '';
+      
+      child.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+      
+      child.stderr.on('data', (data) => {
+        errorOutput += data.toString();
+      });
+      
+      child.on('close', (code) => {
+        res.writeHead(200, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          command: command,
+          output: output,
+          error: errorOutput,
+          exitCode: code,
+          timestamp: new Date().toISOString()
+        }));
+      });
+      
+      child.on('error', (error) => {
+        res.writeHead(500, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify({
+          error: `Ошибка выполнения команды: ${error.message}`
+        }));
+      });
+      
+    } catch (error) {
+      res.writeHead(400, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({ error: 'Invalid JSON' }));
+    }
+  });
+}
+
+// Smart AI response generator
+function generateSmartResponse(message) {
+  const lowerMessage = message.toLowerCase();
+  
+  // Контекстные ответы
+  if (lowerMessage.includes("файл") || lowerMessage.includes("папк")) {
+    return "Для работы с файлами используйте файловый менеджер. Я могу помочь проанализировать код, найти ошибки или объяснить структуру проекта.";
+  }
+  
+  if (lowerMessage.includes("код") || lowerMessage.includes("программ")) {
+    return "Я могу помочь с анализом кода! Покажите мне файл через файловый менеджер, и я объясню его структуру, найду потенциальные проблемы или предложу улучшения.";
+  }
+  
+  if (lowerMessage.includes("терминал") || lowerMessage.includes("команд")) {
+    return "Используйте вкладку Terminal для выполнения команд. Доступны безопасные команды: ls, pwd, whoami, date, uname, df, free, ps, cat, head, tail, wc, grep, find, tree.";
+  }
+  
+  if (lowerMessage.includes("помощь") || lowerMessage.includes("help")) {
+    return "Я AI Agent! Могу помочь с:\n• 📁 Анализом файлов и кода\n• 💻 Выполнением команд в терминале\n• 🔍 Поиском и объяснением информации\n• 🛠️ Решением технических задач\n\nЧто вас интересует?";
+  }
+  
+  if (lowerMessage.includes("привет") || lowerMessage.includes("hello")) {
+    return "Привет! Я AI Agent - ваш помощник для работы с файлами и кодом. Чем могу помочь?";
+  }
+  
+  // Общие ответы
+  const responses = [
+    `Интересный вопрос о "${message}". Я готов помочь с анализом файлов, выполнением команд или объяснением технических концепций.`,
+    `Понял ваш запрос: "${message}". Используйте файловый менеджер и терминал для практической работы, а я помогу с анализом.`,
+    `"${message}" - хорошая тема! Я могу помочь найти информацию, проанализировать код или выполнить команды. Что конкретно нужно?`,
+    `Спасибо за вопрос о "${message}". Как AI Agent, я специализируюсь на работе с файлами, кодом и системными задачах. Чем помочь?`
+  ];
+  
+  return responses[Math.floor(Math.random() * responses.length)];
 }
 
 const PORT = 3001;
