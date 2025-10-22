@@ -150,13 +150,40 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Обслуживаем скомпилированные файлы из dist
+  if (pathname.startsWith('/assets/')) {
+    serveFile(res, 'dist' + pathname, getContentType(pathname));
+    return;
+  }
+
   if (pathname.endsWith('.js')) {
-    serveFile(res, pathname.slice(1), 'application/javascript');
+    // Сначала пробуем из dist, потом из корня
+    const distPath = path.join(__dirname, 'dist' + pathname);
+    const rootPath = path.join(__dirname, pathname.slice(1));
+    
+    if (fs.existsSync(distPath)) {
+      serveFile(res, 'dist' + pathname, 'application/javascript');
+    } else if (fs.existsSync(rootPath)) {
+      serveFile(res, pathname.slice(1), 'application/javascript');
+    } else {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.end('File not found');
+    }
     return;
   }
 
   if (pathname.endsWith('.css')) {
-    serveFile(res, pathname.slice(1), 'text/css');
+    const distPath = path.join(__dirname, 'dist' + pathname);
+    const rootPath = path.join(__dirname, pathname.slice(1));
+    
+    if (fs.existsSync(distPath)) {
+      serveFile(res, 'dist' + pathname, 'text/css');
+    } else if (fs.existsSync(rootPath)) {
+      serveFile(res, pathname.slice(1), 'text/css');
+    } else {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.end('File not found');
+    }
     return;
   }
 
@@ -586,6 +613,22 @@ async function getRequestBody(req) {
     });
     req.on('error', reject);
   });
+}
+
+function getContentType(pathname) {
+  const ext = path.extname(pathname).toLowerCase();
+  const types = {
+    '.html': 'text/html',
+    '.js': 'application/javascript',
+    '.css': 'text/css',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.ico': 'image/x-icon'
+  };
+  return types[ext] || 'text/plain';
 }
 
 function serveFile(res, filePath, contentType) {
